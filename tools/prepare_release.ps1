@@ -58,9 +58,9 @@ if (Test-Path $optProj) {
 }
 $savesDir = Join-Path $ResolvedProject "game\saves"
 if (Test-Path $savesDir) {
-    $saveFiles = Get-ChildItem $savesDir -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne ".gitkeep" }
+    $saveFiles = Get-ChildItem $savesDir -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -eq ".save" }
     if ($saveFiles) {
-        $issues += "game/saves/ 中存在 $($saveFiles.Count) 个开发期存档/状态文件（建议清理后再打包）。"
+        $issues += "game/saves/ 中存在 $($saveFiles.Count) 个开发期存档文件（打包配置已默认排除，仍建议定期清理）。"
     }
 }
 
