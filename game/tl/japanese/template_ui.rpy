@@ -151,14 +151,8 @@ translate japanese strings:
     old "已解锁  %d / %d"
     new "解除済み %d / %d"
 
-    old "全部"
-    new "すべて"
-
     old "已解锁"
     new "解除済み"
-
-    old "未解锁"
-    new "未解除"
 
     old "达成特定条件后解锁"
     new "特定の条件を満たすと解除されます"
@@ -196,17 +190,8 @@ translate japanese strings:
     old "%s (%d张)"
     new "%s（%d枚）"
 
-    old "系统菜单"
-    new "システムメニュー"
-
     old "成就弹窗"
     new "実績通知"
-
-    old "开"
-    new "オン"
-
-    old "关"
-    new "オフ"
 
     old "Steam 集成"
     new "Steam 連携"

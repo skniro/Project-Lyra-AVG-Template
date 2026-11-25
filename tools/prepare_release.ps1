@@ -88,8 +88,8 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "正在执行静态检查 (renpy lint)..." -ForegroundColor Cyan
 $lintOut = & $RenpyPath $ResolvedProject lint | Out-String
 Write-Host $lintOut
-if ($LASTEXITCODE -ne 0) {
-    throw "Ren'Py lint 失败 (exit=$LASTEXITCODE)"
+if ($LASTEXITCODE -ne 0 -or $lintOut -match '(?m)^(Traceback|Full traceback|Exception:)') {
+    throw "Ren'Py lint 发现异常或失败 (exit=$LASTEXITCODE)"
 }
 
 # 4. 可选多平台打包
