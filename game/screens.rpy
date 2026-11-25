@@ -363,11 +363,23 @@ style input:
 screen choice(items):
     style_prefix "choice"
 
-    vbox:
-        ypos (720 if persistent.choice_pos == "bottom" else (280 if persistent.choice_pos == "upper" else 405))
+    if len(items) >= 6:
+        vpgrid:
+            cols 2
+            xalign 0.5
+            ypos 280
+            spacing 20
 
-        for i in items:
-            textbutton i.caption action [Function(controller_rumble_choice), i.action]
+            for i in items:
+                textbutton (i.caption + ("  ✓" if getattr(persistent, "read_mark", "off") in ("choices", "on") and getattr(i, "chosen", False) else "")):
+                    action [Function(controller_rumble_choice), i.action]
+    else:
+        vbox:
+            ypos (720 if persistent.choice_pos == "bottom" else (280 if persistent.choice_pos == "upper" else 405))
+
+            for i in items:
+                textbutton (i.caption + ("  ✓" if getattr(persistent, "read_mark", "off") in ("choices", "on") and getattr(i, "chosen", False) else "")):
+                    action [Function(controller_rumble_choice), i.action]
 
 
 style choice_vbox is vbox
@@ -2154,13 +2166,19 @@ screen history():
                                 null width 38
 
                             vbox:
-                                xsize 1380
+                                xsize 1240
                                 spacing 6
                                 yalign 0.5
 
                                 if h.who:
                                     text h.who style "log_who" color who_color
                                 text what style "log_text" substitute False
+
+                            if getattr(h, "rollback_identifier", None) and renpy.get_identifier_checkpoints(h.rollback_identifier) is not None:
+                                textbutton _("回溯至此"):
+                                    action Confirm(_("是否回溯至该句对话？"), RollbackToIdentifier(h.rollback_identifier), confirm_selected=True)
+                                    style "save_bottom_button"
+                                    yalign 0.5
 
                 if not _history_list:
                     text _("尚无对话历史记录。") style "log_empty" xalign 0.5

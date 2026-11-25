@@ -6,8 +6,28 @@
 #   - 非 Steam 环境（本地开发 / Android / 独立版）自动静默降级，不产生报错
 
 default _current_chapter_title = ""
+default _story_hud = {}
 
 init -6 python:
+
+    def set_story_hud(date_text="", weather="", location="", theme="day"):
+        """设置左上角车站牌风格剧情 HUD（日期、天气、地点、日/昏/夜主题）。"""
+        if not date_text and not weather and not location:
+            store._story_hud = {}
+            return
+        store._story_hud = {
+            "date": date_text or "",
+            "weather": weather or "",
+            "location": location or "",
+            "theme": theme or "day",
+        }
+
+    def clear_story_hud():
+        store._story_hud = {}
+
+    def get_story_hud():
+        hud = getattr(store, "_story_hud", None)
+        return hud if isinstance(hud, dict) else {}
 
     def is_steam_active():
         try:

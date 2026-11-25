@@ -52,10 +52,13 @@ init -10 python:
     PROJECT_MEMORIES = []
     PROJECT_ACHIEVEMENTS = []
     PROJECT_SHOW_ACHIEVEMENT_TOAST = True
+    PROJECT_ENDING_STAMPS = []
+    PROJECT_SPEAKER_STYLES = {}
     PROJECT_FLOWCHART = {
         "title": "CHART",
         "subtitle": _("剧情分支流程图"),
         "canvas_size": (1520, 740),
+        "columns": [],
         "nodes": [],
         "edges": [],
     }

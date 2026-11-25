@@ -94,15 +94,17 @@ init python:
             cx = max(40, abs(x2 - x1) * 0.5)
 
             both_ok = is_flowchart_node_unlocked(src) and is_flowchart_node_unlocked(dst)
-            stroke = custom_color if (custom_color and both_ok) else ("#7FC8C0" if both_ok else "#254950")
+            node_color = dst.get("color") or src.get("color")
+            stroke = custom_color if (custom_color and both_ok) else (node_color if (node_color and both_ok) else ("#7FC8C0" if both_ok else "#254950"))
             opacity = "0.95" if both_ok else "0.55"
             width = "3" if both_ok else "2"
+            dash = "" if both_ok else ' stroke-dasharray="6 5"'
 
             parts.append(
                 '<path d="M {x1} {y1} C {c1x} {y1}, {c2x} {y2}, {x2} {y2}" '
-                'fill="none" stroke="{st}" stroke-opacity="{op}" stroke-width="{sw}" stroke-linecap="round"/>'.format(
+                'fill="none" stroke="{st}" stroke-opacity="{op}" stroke-width="{sw}" stroke-linecap="round"{dash}/>'.format(
                     x1=x1, y1=y1, c1x=x1 + cx, c2x=x2 - cx, x2=x2, y2=y2,
-                    st=stroke, op=opacity, sw=width
+                    st=stroke, op=opacity, sw=width, dash=dash
                 )
             )
             parts.append(

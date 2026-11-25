@@ -158,8 +158,30 @@ init python:
             if _track_matches(playing, path):
                 mark_music(index)
 
+    def is_ending_stamp_unlocked(stamp):
+        sid = stamp.get("id", "")
+        flag = stamp.get("unlock_flag")
+        if flag and getattr(persistent, flag, False):
+            return True
+        ach_id = stamp.get("achievement_id")
+        if ach_id and is_achievement_unlocked(ach_id):
+            return True
+        manual = getattr(persistent, "_unlocked_stamps", None)
+        return isinstance(manual, set) and sid in manual
+
+    def unlock_ending_stamp(stamp_id):
+        if not isinstance(getattr(persistent, "_unlocked_stamps", None), set):
+            persistent._unlocked_stamps = set()
+        persistent._unlocked_stamps.add(stamp_id)
+
+    def get_ending_stamp_stats():
+        total = len(PROJECT_ENDING_STAMPS)
+        unlocked = sum(1 for s in PROJECT_ENDING_STAMPS if is_ending_stamp_unlocked(s))
+        pct = int(round(100.0 * unlocked / max(1, total))) if total > 0 else 0
+        return {"unlocked": unlocked, "total": total, "pct": pct}
+
     def get_game_completion_stats():
-        """汇总 CG、BGM、回想、流程图与成就总体收集统计。"""
+        """汇总 CG、BGM、回想、流程图、成就与结局印章总体收集统计。"""
         cg_unlocked = sum(1 for e in cg_entries if is_cg_unlocked(_cg_fields(e)[0]))
         cg_total = len(cg_entries)
         music_heard = sum(1 for i in range(len(music_tracks)) if getattr(persistent, "music_%02d" % (i + 1), False))
@@ -167,9 +189,10 @@ init python:
         mem = get_memory_stats()
         fc = get_flowchart_stats()
         ach = get_achievement_stats()
+        stamps = get_ending_stamp_stats()
 
-        total_items = cg_total + music_total + mem["total"] + fc["total"] + ach["total"]
-        done_items = cg_unlocked + music_heard + mem["unlocked"] + fc["unlocked"] + ach["unlocked"]
+        total_items = cg_total + music_total + mem["total"] + fc["total"] + ach["total"] + stamps["total"]
+        done_items = cg_unlocked + music_heard + mem["unlocked"] + fc["unlocked"] + ach["unlocked"] + stamps["unlocked"]
         overall_pct = int(round(100.0 * done_items / max(1, total_items))) if total_items > 0 else 0
         cg_pct = int(round(100.0 * cg_unlocked / max(1, cg_total))) if cg_total > 0 else 0
         music_pct = int(round(100.0 * music_heard / max(1, music_total))) if music_total > 0 else 0
@@ -186,6 +209,8 @@ init python:
             "chart_total": fc["total"],
             "ach_unlocked": ach["unlocked"],
             "ach_total": ach["total"],
+            "stamps_unlocked": stamps["unlocked"],
+            "stamps_total": stamps["total"],
             "overall_pct": overall_pct,
         }
 
