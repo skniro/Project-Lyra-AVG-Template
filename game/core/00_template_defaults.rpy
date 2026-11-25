@@ -22,9 +22,8 @@ init -10 python:
     PROJECT_SHOW_MAIN_MENU_TITLE_TEXT = True
     PROJECT_BUILD_DATE = None
 
-    PROJECT_MANUAL_INTRO = _("这是一款边阅读故事边前进的视觉小说。\n按照途中玩家所作的选择，故事会变得不一样。")
+    PROJECT_MANUAL_INTRO = _("这是一款边阅读故事边前进的视觉小说。\n按照途中玩家所作的选择，故事会变得变得不一样。")
     PROJECT_MANUAL_BRANCH_INFO = _("故事会在关键选项处产生分支，\n根据玩家的决定进入不同的剧情路线。")
-    # 项目附加说明书页（支持 SVG 插图，格式同 content_pages 中的 page dict）
     PROJECT_MANUAL_EXTRA_PAGES = []
 
     PROJECT_MUSIC_SUBTITLE = _("BGM")
@@ -49,12 +48,22 @@ init -10 python:
     PROJECT_AUTO_VOICE_MAP = {}
     PROJECT_IMAGE_OFFSETS = {}
 
-    # 扩展导航与内容页面（支持 .svg 文件与内联 <svg> 绘图）
-    # PROJECT_MAIN_MENU_EXTRA_ITEMS: [(label, action), ...]
+    # SPRB 风格扩展系统数据（由项目侧在 game/project/00_project_config.rpy 配置）
+    PROJECT_MEMORIES = []
+    PROJECT_ACHIEVEMENTS = []
+    PROJECT_SHOW_ACHIEVEMENT_TOAST = True
+    PROJECT_FLOWCHART = {
+        "title": "CHART",
+        "subtitle": _("剧情分支流程图"),
+        "canvas_size": (1520, 740),
+        "nodes": [],
+        "edges": [],
+    }
+    PROJECT_MAPS = {}
+
+    # 扩展导航与内容页面
     PROJECT_MAIN_MENU_EXTRA_ITEMS = []
-    # PROJECT_EXTRA_CARDS: [{"title": ..., "sub": ..., "hint": ..., "action": ..., "visual": ...}, ...]
     PROJECT_EXTRA_CARDS = []
-    # PROJECT_CONTENT_PAGES: {page_id: {"title": ..., "subtitle": ..., "pages": [...]}}
     PROJECT_CONTENT_PAGES = {}
 
     PROJECT_CHARACTER_LAYOUT = {

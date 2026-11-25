@@ -8,7 +8,7 @@
 
 ### 模板核心层（`template_owned` — 请勿在业务项目中直接修改）
 以下文件由模板维护，执行 `sync_template.ps1` 时会按清单自动更新：
-- `game/core/`：模板默认值（`00_template_defaults.rpy`）、配置装配（`90_template_setup.rpy`）、SVG 矢量绘图与富视觉渲染（`svg_support.rpy`）、通用内容页系统（`content_pages.rpy`）、多语言切换与开屏语言选择（`localization.rpy`）、分页 CG/音乐鉴赏（`extras.rpy`）、数据驱动制作人员页（`credits.rpy`）、手柄震动（`controller_rumble.rpy`）、自动语音（`voice_system.rpy`）、结束画面（`the_end.rpy`）。
+- `game/core/`：模板默认值（`00_template_defaults.rpy`）、配置装配（`90_template_setup.rpy`）、SVG 矢量绘图与富视觉渲染（`svg_support.rpy`）、通用内容页系统（`content_pages.rpy`）、SPRB 扩展系统（`memories.rpy` 场景回想、`flowchart.rpy` SVG 剧情流程图、`achievements.rpy` 成就与 Steam 联动、`map_system.rpy` 地图选点、`steam_integration.rpy` Steam 时间线/悬浮窗封装）、多语言切换与开屏语言选择（`localization.rpy`）、分页 CG（支持多差分）/音乐鉴赏（支持播控与循环模式）（`extras.rpy`）、数据驱动制作人员页（`credits.rpy`）、手柄震动（`controller_rumble.rpy`）、自动语音（`voice_system.rpy`）、结束画面（`the_end.rpy`）。
 - `game/api/`：立绘状态机与自动对齐/配角避让站位系统（`character_system.rpy`、`character_position.rpy`、`character_emote.rpy`）。
 - `game/gui.rpy`、`game/options.rpy`、`game/screens.rpy`：基础样式、通用引擎默认项与发布排除规则、数据驱动 UI 界面。
 - `game/fonts/`、`game/libs/`、`game/gui/` 基础控件图、`game/tl/None/`、`game/tl/japanese/{common,manual,screens,template_ui}.rpy`。

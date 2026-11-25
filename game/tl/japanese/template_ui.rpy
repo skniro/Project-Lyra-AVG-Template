@@ -92,3 +92,139 @@ translate japanese strings:
     # game/core/content_pages.rpy
     old "暂无内容。"
     new "コンテンツはまだありません。"
+
+    # SPRB 扩展系统（MEMORIES / CHART / ACHIEVEMENT / MUSIC / MAP / STEAM）
+    old "旅途中收集到的画面、旋律与记忆"
+    new "旅の途中で集めた風景・旋律・記憶"
+
+    old "MEMORIES"
+    new "メモリーズ"
+
+    old "场景回想  %d / %d"
+    new "シーン回想 %d / %d"
+
+    old "CHART"
+    new "チャート"
+
+    old "剧情流程  %d / %d"
+    new "シナリオ進行 %d / %d"
+
+    old "ACHIEVEMENT"
+    new "実績"
+
+    old "成就记录  %d / %d"
+    new "実績記録 %d / %d"
+
+    old "剧情分支流程图"
+    new "シナリオ分岐フローチャート"
+
+    old "已收录  %d / %d"
+    new "収録済み %d / %d"
+
+    old "暂无已收录的场景回想"
+    new "収録されているシーン回想はまだありません"
+
+    old "点击已解锁场景即可进入独立回想"
+    new "解放済みのシーンをクリックして再生"
+
+    old "节点 %d / %d  ·  结局 %d / %d"
+    new "ノード %d / %d  ・  エンディング %d / %d"
+
+    old "未探索分支"
+    new "未到達ルート"
+
+    old "？？？"
+    new "？？？"
+
+    old "尚未抵达该剧情节点。"
+    new "このシナリオノードにはまだ到達していません。"
+
+    old "回放该节点"
+    new "このシーンを再生"
+
+    old "拖动或滚轮浏览流程图，点击已解锁节点可查看摘要或回放"
+    new "ドラッグまたはホイールで閲覧、解放済みノードをクリックで詳細・再生"
+
+    old "Steam 已连接"
+    new "Steam 接続中"
+
+    old "已解锁  %d / %d"
+    new "解除済み %d / %d"
+
+    old "全部"
+    new "すべて"
+
+    old "已解锁"
+    new "解除済み"
+
+    old "未解锁"
+    new "未解除"
+
+    old "达成特定条件后解锁"
+    new "特定の条件を満たすと解除されます"
+
+    old "暂无成就记录"
+    new "実績データはまだありません"
+
+    old "Steam 成就面板"
+    new "Steam 実績オーバーレイ"
+
+    old "当前未连接到 Steam 客户端"
+    new "現在 Steam クライアントに接続されていません"
+
+    old "解锁成就"
+    new "実績解除"
+
+    old "ACHIEVEMENT UNLOCKED"
+    new "実績解除"
+
+    old "顺序循环"
+    new "リスト順"
+
+    old "单曲循环"
+    new "1曲リピート"
+
+    old "随机播放"
+    new "シャッフル"
+
+    old "点击曲目立即播放，可切换顺序 / 单曲 / 随机模式"
+    new "曲をクリックして再生（リスト順 / 1曲リピート / シャッフル切替可）"
+
+    old "%s  [%d / %d]  ·  点击切换差分 / 右键退出"
+    new "%s  [%d / %d]  ・  クリックで差分切替 / 右クリックで閉じる"
+
+    old "%s (%d张)"
+    new "%s（%d枚）"
+
+    old "系统菜单"
+    new "システムメニュー"
+
+    old "成就弹窗"
+    new "実績通知"
+
+    old "开"
+    new "オン"
+
+    old "关"
+    new "オフ"
+
+    old "Steam 集成"
+    new "Steam 連携"
+
+    old "已连接：%s"
+    new "接続中：%s"
+
+    old "打开 Steam 成就"
+    new "Steam 実績を開く"
+
+    old "未检测到 Steam 运行环境（本地/独立模式）"
+    new "Steam 環境が検出されていません（スタンドアロンモード）"
+
+    old "开发测试"
+    new "開発テスト"
+
+    old "全部鉴赏解锁"
+    new "EXTRA 全解放"
+
+    old "清除本地成就"
+    new "ローカル実績リセット"

@@ -91,7 +91,24 @@ define PROJECT_VOICE_CAST = []
 # define PROJECT_MANUAL_EXTRA_PAGES = []
 
 
-## 5. 主题/UI 覆盖（可选，无需修改 game/gui.rpy） #################################
+## 5. SPRB 系统数据（回想 / 成就 / 流程图 / 地图选点，可选） ####################
+# define PROJECT_MEMORIES = [
+#     {"id": "mem_01", "group": _("序幕"), "title": _("初遇"), "desc": _("初到小镇"), "label": "start", "thumb": "images/backgrounds/station.png"},
+# ]
+# define PROJECT_ACHIEVEMENTS = [
+#     {"id": "ach_01", "steam": "ACH_01", "title": _("初入夏末"), "desc": _("开始游戏。"), "hidden": False},
+# ]
+# define PROJECT_FLOWCHART = {
+#     "title": "CHART",
+#     "subtitle": _("剧情分支流程图"),
+#     "canvas_size": (1520, 740),
+#     "nodes": [],
+#     "edges": [],
+# }
+# define PROJECT_MAPS = {}
+
+
+## 6. 主题/UI 覆盖（可选，无需修改 game/gui.rpy） #################################
 
 # define gui.main_menu_background = "gui/main_menu.png"
 # define gui.game_menu_background = "gui/game_menu.png"

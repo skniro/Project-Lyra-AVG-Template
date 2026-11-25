@@ -34,3 +34,7 @@ define PROJECT_BUILD_ARCHIVE_NAME = "archive"
 
 # define build.itch_project = "yourname/your-game"
 # define build.google_play_key = "..."
+
+## Steam 平台配置（上线 Steam 时填写 AppID） ###################################
+# define config.steam_appid = 480
+define config.enable_steam = True

@@ -37,6 +37,7 @@ init python:
         "choice_cursor": "yes",
         "skip_speed": 0.5,
         "voice_skip_stop": True,
+        "achievement_toast": True,
         "controller_rumble": "off",
         "ui_language": "zh",
         "font_choice": "sans",
@@ -127,6 +128,7 @@ init python:
     # it above the note (Summer Pockets style).
     def _save_dialogue_json(d):
         d["dialogue"] = getattr(store, "_last_say_what", "") or ""
+        d["chapter"] = getattr(store, "_current_chapter_title", "") or ""
 
     config.save_json_callbacks.append(_save_dialogue_json)
 
@@ -754,14 +756,14 @@ screen main_menu_navigation():
 
         frame:
             background None
-            xsize 1120
+            xsize 1380
             ysize 72
             yalign 0.5
 
             hbox:
                 xalign 0.5
                 yalign 0.5
-                spacing 44
+                spacing (44 if main_menu_page == 0 else 28)
 
                 if main_menu_page == 0:
 
@@ -775,6 +777,9 @@ screen main_menu_navigation():
 
                     textbutton _("GALLERY") action ShowMenu("cg_gallery")
                     textbutton _("MUSIC") action ShowMenu("music_room")
+                    textbutton _("MEMORIES") action ShowMenu("memories")
+                    textbutton _("CHART") action ShowMenu("flowchart")
+                    textbutton _("ACHIEVEMENT") action ShowMenu("achievements")
                     textbutton _("CREDITS") action ShowMenu("credits")
                     for _mm_label, _mm_action in PROJECT_MAIN_MENU_EXTRA_ITEMS:
                         textbutton _mm_label action _mm_action
@@ -1089,7 +1094,13 @@ screen file_slots(title, mode):
 
             vbox:
                 spacing 6
-                text title style "save_title_text"
+                hbox:
+                    spacing 16
+                    yalign 0.5
+                    text title style "save_title_text" yalign 0.5
+                    $ sel_chapter = FileJson(sel, "chapter", empty=(_current_chapter_title if mode == "save" else ""), missing="")
+                    if sel_chapter:
+                        text ("· " + sel_chapter) style "save_dialogue_text" yalign 0.5
 
                 $ sel_dialogue = FileJson(sel, "dialogue", empty=(_last_say_what if mode == "save" else ""), missing="")
                 if sel_dialogue:
@@ -1211,7 +1222,18 @@ screen file_slots(title, mode):
         xalign 0.5
         yalign 1.0
         yoffset -36
-        spacing 8
+        spacing 6
+
+        if mode == "load":
+            textbutton "AUTO":
+                action FilePage("auto")
+                style "save_page_button"
+                selected (str(cur_page) == "auto")
+            textbutton "QUICK":
+                action FilePage("quick")
+                style "save_page_button"
+                selected (str(cur_page) == "quick")
+            text "|" style "save_page_button_text"
 
         for page in range(1, 16):
             textbutton str(page):
@@ -1568,6 +1590,11 @@ screen prefs_basic():
             (_("强"), "strong", True),
         ], test=controller_rumble_preview)
 
+        use pref_field_row(_("成就弹窗"), "achievement_toast", [
+            (_("开"), True, True),
+            (_("关"), False, True),
+        ])
+
 
 screen prefs_text1():
 
@@ -1810,6 +1837,24 @@ screen prefs_system():
                         action Function(set_window_scale, scale)
                         style "options_scale"
                         selected is_current_window_scale(scale)
+
+        use pref_row(_("Steam 集成")):
+            hbox:
+                spacing 14
+                if is_steam_active():
+                    $ _sname = steam_persona_name() or "Steam"
+                    text (__("已连接：%s") % _sname) style "options_preview_text" yalign 0.5
+                    textbutton _("打开 Steam 成就"):
+                        action Function(steam_open_overlay, "Achievements")
+                        style "options_segment"
+                else:
+                    text _("未检测到 Steam 运行环境（本地/独立模式）") style "options_preview_text" yalign 0.5
+
+        if config.developer:
+            use pref_action_row(_("开发测试"), [
+                (_("全部鉴赏解锁"), Function(unlock_all_extras)),
+                (_("清除本地成就"), Function(clear_all_local_achievements)),
+            ])
 
 
 style pref_label is gui_label

@@ -38,7 +38,28 @@ init 1 python:
     if PROJECT_MUSIC_TRACKS and not music_tracks:
         music_tracks.extend(PROJECT_MUSIC_TRACKS)
 
-    # 4. 发布打包：额外的排除规则与资源归档
+    # 4. 注册成就（同步绑定 Steam 后端）
+    for _ach in PROJECT_ACHIEVEMENTS:
+        _aid = _ach.get("id")
+        if not _aid:
+            continue
+        _kwargs = {}
+        if _ach.get("steam"):
+            _kwargs["steam"] = _ach["steam"]
+        if _ach.get("stat_max"):
+            _kwargs["stat_max"] = _ach["stat_max"]
+        if _ach.get("stat_modulo"):
+            _kwargs["stat_modulo"] = _ach["stat_modulo"]
+        try:
+            achievement.register(_aid, **_kwargs)
+        except Exception:
+            pass
+    try:
+        achievement.sync()
+    except Exception:
+        pass
+
+    # 5. 发布打包：额外的排除规则与资源归档
     for _pattern in PROJECT_EXTRA_BUILD_EXCLUDES:
         build.classify(_pattern, None)
 
