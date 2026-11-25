@@ -171,7 +171,7 @@ screen extras():
                                 if _card.get("sub"):
                                     text _card["sub"] style "extras_card_sub"
 
-    textbutton _("返回") action Return() style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -36
+    textbutton _("返回") action Return() style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -44
     key "game_menu" action Return()
 
 
@@ -237,7 +237,7 @@ screen cg_gallery():
         hbox:
             xalign 0.5
             yalign 1.0
-            yoffset -36
+            yoffset -44
             spacing 16
 
             textbutton "‹":
@@ -256,8 +256,8 @@ screen cg_gallery():
                 style "extras_back_button"
                 sensitive (_cur_page < _total_pages - 1)
 
-    text _("点击缩略图全屏查看") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -36
-    textbutton _("返回") action (ShowMenu("main_menu") if main_menu else ShowMenu("extras")) style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -36
+    text _("点击缩略图全屏查看") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -44
+    textbutton _("返回") action (ShowMenu("main_menu") if main_menu else ShowMenu("extras")) style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -44
     key "game_menu" action (ShowMenu("main_menu") if main_menu else ShowMenu("extras"))
 
 
@@ -292,9 +292,9 @@ screen music_room():
     frame:
         style "extras_music_panel_frame"
         xalign 0.5
-        ypos 235
+        ypos 232
         xsize 1680
-        ysize 700
+        ysize 688
 
         if music_tracks:
             $ _mid = (len(music_tracks) + 1) // 2
@@ -321,13 +321,13 @@ screen music_room():
         else:
             text _("暂无已收录的音乐") style "extras_meta_text" xalign 0.5 yalign 0.5
 
-    text _("点击曲目立即播放，自动循环") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -36
+    text _("点击曲目立即播放，自动循环") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -44
 
     hbox:
         xalign 1.0
         yalign 1.0
         xoffset -64
-        yoffset -36
+        yoffset -44
         spacing 28
 
         textbutton _("停止播放") action Stop("music") style "extras_back_button"

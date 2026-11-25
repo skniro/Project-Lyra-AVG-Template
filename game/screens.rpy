@@ -464,10 +464,12 @@ screen quick_bar_button(icon, label, act, alt=None):
         alternate (alt or act)
 
         vbox:
+            xalign 0.5
+            yalign 0.5
             spacing 1
 
             add icon xalign 0.5 xysize (30, 30)
-            text label style "quick_bar_label" xalign 0.5
+            text label style "quick_bar_label" xalign 0.5 textalign 0.5
 
 
 screen quick_side_button(icon, label, act):
@@ -477,12 +479,12 @@ screen quick_side_button(icon, label, act):
         action act
 
         hbox:
-            xalign 1.0
+            xalign 0.0
             yalign 0.5
             spacing 8
 
             add icon xysize (28, 28) yalign 0.5
-            text label style "quick_side_label" xsize 105 textalign 0.0 yalign 0.5
+            text label style "quick_side_label" xsize 96 textalign 0.0 yalign 0.5
 
 
 screen custom_keys():
@@ -573,7 +575,7 @@ style quick_side_button:
     background None
     hover_background "#7FC8C022"
     padding (6, 2)
-    xsize 156
+    xsize 148
 
 style quick_side_label:
     font gui.text_font
@@ -1029,6 +1031,15 @@ style about_label_text:
 default file_slot_sel = 1
 default save_note_editing = False
 
+init python:
+    def _ensure_valid_file_page(reset_to_first=False):
+        if reset_to_first:
+            persistent._file_page = "1"
+            return
+        cur = str(getattr(persistent, "_file_page", "1"))
+        if cur not in [str(p) for p in range(1, 16)]:
+            persistent._file_page = "1"
+
 screen save():
 
     tag menu
@@ -1038,12 +1049,13 @@ screen save():
 screen load():
 
     tag menu
+    on "show" action [Function(_ensure_valid_file_page, reset_to_first=True), SetVariable("file_slot_sel", 1)]
     use file_slots(_("LOAD"), "load")
 
 
 screen file_slots(title, mode):
 
-    on "show" action SetVariable("save_note_editing", False)
+    on "show" action [SetVariable("save_note_editing", False), Function(_ensure_valid_file_page, reset_to_first=(mode == "load"))]
 
     $ sel = file_slot_sel
 
@@ -1055,7 +1067,7 @@ screen file_slots(title, mode):
 
     hbox:
         xalign 0.5
-        ypos 30
+        ypos 28
         spacing 18
 
         frame:
@@ -1119,7 +1131,7 @@ screen file_slots(title, mode):
 
     grid 5 4:
         xalign 0.5
-        ypos 265
+        ypos 256
         xsize 1600
         ysize 734
         spacing 10
@@ -1145,10 +1157,10 @@ screen file_slots(title, mode):
                     text ("+" if mode == "save" else "") style "save_slot_plus" xalign 0.5 yalign 0.5
 
     button:
-        action FilePagePrevious(max=15)
+        action FilePagePrevious(max=15, wrap=False, auto=False, quick=False)
         style "save_side_button"
         xpos 14
-        ypos 632
+        ypos 623
         yanchor 0.5
 
         vbox:
@@ -1159,11 +1171,11 @@ screen file_slots(title, mode):
             text "◀" style "save_side_arrow"
 
     button:
-        action FilePageNext(max=15)
+        action FilePageNext(max=15, wrap=False, auto=False, quick=False)
         style "save_side_button"
         xalign 1.0
         xoffset -14
-        ypos 632
+        ypos 623
         yanchor 0.5
 
         vbox:
@@ -1176,7 +1188,7 @@ screen file_slots(title, mode):
     hbox:
         xpos 160
         yalign 1.0
-        yoffset -16
+        yoffset -36
         spacing 28
 
         textbutton _("删除"):
@@ -1193,12 +1205,12 @@ screen file_slots(title, mode):
         xalign 1.0
         xoffset -160
         yalign 1.0
-        yoffset -16
+        yoffset -36
 
     hbox:
         xalign 0.5
         yalign 1.0
-        yoffset -16
+        yoffset -36
         spacing 8
 
         for page in range(1, 16):
@@ -1449,8 +1461,8 @@ screen preferences():
         else:
             use prefs_system
 
-    textbutton _("恢复默认设置") action Preference("reset") style "options_footer_button" xpos 120 yalign 1.0 yoffset -36
-    textbutton _("关闭") action Return() style "options_footer_button" xalign 1.0 yalign 1.0 xoffset -120 yoffset -36
+    textbutton _("恢复默认设置") action Preference("reset") style "options_footer_button" xpos 120 yalign 1.0 yoffset -44
+    textbutton _("关闭") action Return() style "options_footer_button" xalign 1.0 yalign 1.0 xoffset -120 yoffset -44
 
     key "game_menu" action Return()
 
@@ -2060,13 +2072,13 @@ screen history():
     frame:
         style "log_list_frame"
         xalign 0.5
-        ypos 110
+        ypos 106
         xsize 1600
-        ysize 846
+        ysize 828
 
         viewport:
             xsize 1600
-            ysize 830
+            ysize 816
             mousewheel True
             draggable True
             scrollbars "vertical"
@@ -2112,7 +2124,7 @@ screen history():
         style "log_bottom_bar"
         xalign 0.5
         yalign 1.0
-        yoffset -16
+        yoffset -44
 
         hbox:
             xalign 0.5
@@ -2328,9 +2340,9 @@ screen help():
     frame:
         style "manual_panel_frame"
         xalign 0.5
-        ypos 150
+        ypos 142
         xsize 1660
-        ysize 800
+        ysize 784
 
         if _mp == 0:
             use manual_page_1
@@ -2354,7 +2366,7 @@ screen help():
         idle_background None
         padding (0, 0)
         xpos 18
-        ypos 550
+        ypos 534
         yanchor 0.5
 
     imagebutton:
@@ -2366,14 +2378,14 @@ screen help():
         padding (0, 0)
         xalign 1.0
         xoffset -18
-        ypos 550
+        ypos 534
         yanchor 0.5
 
     frame:
         style "manual_bottom_bar"
         xalign 0.5
         yalign 1.0
-        yoffset -16
+        yoffset -44
 
         hbox:
             xalign 0.5

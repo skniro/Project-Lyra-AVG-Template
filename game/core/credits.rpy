@@ -24,9 +24,9 @@ screen credits():
     frame:
         style "manual_panel_frame"
         xalign 0.5
-        ypos 150
+        ypos 142
         xsize 1660
-        ysize 800
+        ysize 784
 
         viewport:
             scrollbars "vertical"
@@ -47,7 +47,7 @@ screen credits():
         idle_background None
         padding (0, 0)
         xpos 18
-        ypos 550
+        ypos 534
         yanchor 0.5
 
     imagebutton:
@@ -59,14 +59,14 @@ screen credits():
         padding (0, 0)
         xalign 1.0
         xoffset -18
-        ypos 550
+        ypos 534
         yanchor 0.5
 
     frame:
         style "manual_bottom_bar"
         xalign 0.5
         yalign 1.0
-        yoffset -16
+        yoffset -44
 
         hbox:
             xalign 0.5
