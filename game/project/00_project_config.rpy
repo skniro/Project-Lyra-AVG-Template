@@ -62,7 +62,36 @@ define PROJECT_MUSIC_SUBTITLE = _("BGM")
 define PROJECT_VOICE_CAST = []
 
 
-## 4. 主题/UI 覆盖（可选，无需修改 game/gui.rpy） #################################
+## 4. 扩展内容页与 SVG 矢量插图（可选） #########################################
+# 支持 .svg 文件路径、内联 "<svg ...>...</svg>" 字符串或 {"svg": ..., "size": (w, h)}。
+#
+# define PROJECT_MAIN_MENU_EXTRA_ITEMS = [
+#     ("CODEX", ShowMenu("content_page", page_id="codex")),
+# ]
+# define PROJECT_EXTRA_CARDS = [
+#     {
+#         "title": "CODEX",
+#         "sub": _("设定集"),
+#         "action": ShowMenu("content_page", page_id="codex"),
+#         "visual": "<svg ...>...</svg>",
+#     },
+# ]
+# define PROJECT_CONTENT_PAGES = {
+#     "codex": {
+#         "title": "CODEX",
+#         "subtitle": _("世界观与设定"),
+#         "pages": [
+#             {
+#                 "left": [{"title": _("词条"), "body": _("内容"), "visual": "<svg ...>...</svg>", "visual_size": (480, 220)}],
+#                 "right": [(_("补充"), _("正文"))],
+#             }
+#         ],
+#     }
+# }
+# define PROJECT_MANUAL_EXTRA_PAGES = []
+
+
+## 5. 主题/UI 覆盖（可选，无需修改 game/gui.rpy） #################################
 
 # define gui.main_menu_background = "gui/main_menu.png"
 # define gui.game_menu_background = "gui/game_menu.png"

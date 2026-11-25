@@ -2,6 +2,7 @@
 # 制作人员 / 版权与素材署名 (Template-Owned)
 # ==============================================================================
 # 数据驱动分页：内容由 game/project/00_project_config.rpy 中的 PROJECT_CREDITS_PAGES 提供。
+# 支持普通 (标题, 正文) 元组以及含 SVG/图片插图的字典区块。
 
 screen credits():
 
@@ -16,15 +17,15 @@ screen credits():
     add "gui/log_bg.png"
     add "gui/manual_banner.png" xalign 0.5 ypos 0
 
-    text "CREDITS" style "manual_title" xpos 60 ypos 18
-    text _("制作人员") style "manual_title_zh" xpos 290 ypos 30
-    text ("PAGE %d" % (_cur_idx + 1)) style "manual_page_no" xalign 1.0 xoffset -60 ypos 38
+    text "CREDITS" style "manual_title" xpos 130 ypos 18
+    text _("制作人员") style "manual_title_zh" xpos 360 ypos 30
+    text ("PAGE %d" % (_cur_idx + 1)) style "manual_page_no" xalign 1.0 xoffset -130 ypos 38
 
     frame:
         style "manual_panel_frame"
         xalign 0.5
         ypos 150
-        xsize 1720
+        xsize 1660
         ysize 800
 
         viewport:
@@ -35,8 +36,8 @@ screen credits():
             vbox:
                 spacing 22
 
-                for _sec_title, _sec_body in _cur_sections:
-                    use manual_section(_sec_title, _sec_body)
+                for _sec in _cur_sections:
+                    use content_section_block(_sec, 1520)
 
     imagebutton:
         idle "gui/manual_prev.png"
@@ -45,8 +46,9 @@ screen credits():
         background None
         idle_background None
         padding (0, 0)
-        xpos 24
-        yalign 0.5
+        xpos 18
+        ypos 550
+        yanchor 0.5
 
     imagebutton:
         idle "gui/manual_next.png"
@@ -56,8 +58,9 @@ screen credits():
         idle_background None
         padding (0, 0)
         xalign 1.0
-        xoffset -24
-        yalign 0.5
+        xoffset -18
+        ypos 550
+        yanchor 0.5
 
     frame:
         style "manual_bottom_bar"

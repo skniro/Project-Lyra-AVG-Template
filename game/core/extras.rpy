@@ -1,7 +1,8 @@
 # ==============================================================================
-# 鉴赏界面：CG 画廊 / 音乐室 (Template-Owned)
+# 鉴赏界面：CG 画廊 / 音乐室 / 扩展内容卡 (Template-Owned)
 # ==============================================================================
-# 数据由 game/project/00_project_config.rpy 中的 PROJECT_CG_ENTRIES / PROJECT_MUSIC_TRACKS 提供。
+# 数据由 game/project/00_project_config.rpy 中的 PROJECT_CG_ENTRIES / PROJECT_MUSIC_TRACKS
+# / PROJECT_EXTRA_CARDS 提供；CG 与扩展卡片均支持 PNG/WebP 与 SVG 矢量图。
 
 init python:
 
@@ -19,11 +20,25 @@ init python:
     def unlock_cg(cid):
         setattr(persistent, _cg_persistent_key(cid), True)
 
+    def unlock_all_extras():
+        """开发/测试辅助：一键解锁全部 CG 与音乐鉴赏。"""
+        for cid, title, filename, tag in cg_entries:
+            unlock_cg(cid)
+        for index in range(len(music_tracks)):
+            mark_music(index)
+
     def _resolve_cg_path(filename):
+        if is_inline_svg(filename):
+            return filename
         norm = filename.replace("\\", "/")
         if "/" in norm:
             return norm
         return "images/CG/" + norm
+
+    def _cg_is_loadable(path):
+        if is_inline_svg(path):
+            return True
+        return renpy.loadable(path)
 
     def unlock_seen_cgs():
         """当指定 tag 的 CG 正在屏幕显示时自动解锁。"""
@@ -56,6 +71,26 @@ init python:
             if _track_matches(playing, path):
                 mark_music(index)
 
+    def get_game_completion_stats():
+        """汇总 CG 与 BGM 收集统计信息。"""
+        cg_unlocked = sum(1 for cid, title, filename, tag in cg_entries if is_cg_unlocked(cid))
+        cg_total = len(cg_entries)
+        music_heard = sum(1 for i in range(len(music_tracks)) if getattr(persistent, "music_%02d" % (i + 1), False))
+        music_total = len(music_tracks)
+        total = cg_total + music_total
+        overall_pct = int(round(100.0 * (cg_unlocked + music_heard) / max(1, total))) if total > 0 else 0
+        cg_pct = int(round(100.0 * cg_unlocked / max(1, cg_total))) if cg_total > 0 else 0
+        music_pct = int(round(100.0 * music_heard / max(1, music_total))) if music_total > 0 else 0
+        return {
+            "cg_unlocked": cg_unlocked,
+            "cg_total": cg_total,
+            "cg_pct": cg_pct,
+            "music_heard": music_heard,
+            "music_total": music_total,
+            "music_pct": music_pct,
+            "overall_pct": overall_pct,
+        }
+
     config.start_interact_callbacks.append(unlock_seen_cgs)
     config.start_interact_callbacks.append(unlock_heard_music)
 
@@ -65,44 +100,82 @@ init python:
 screen extras():
     tag menu
 
-    $ unlocked = sum(1 for cid, title, filename, tag in cg_entries if is_cg_unlocked(cid))
+    $ _stats = get_game_completion_stats()
+    $ _has_extra_cards = bool(PROJECT_EXTRA_CARDS)
 
     add "gui/extras_bg.png"
     text _("EXTRAS") style "extras_heading_text" xpos 64 ypos 22
-    text _("旅途中收集到的画面与旋律") style "extras_meta_text" xalign 1.0 xoffset -64 ypos 40
 
     hbox:
+        xalign 1.0
+        xoffset -64
+        ypos 26
+        spacing 16
+
+        text _("旅途中收集到的画面与旋律") style "extras_meta_text" yalign 0.5
+        if _stats["cg_total"] > 0 or _stats["music_total"] > 0:
+            add svg_progress_ring(_stats["overall_pct"], size=58) yalign 0.5
+
+    vbox:
         xalign 0.5
         yalign 0.53
-        spacing 64
+        spacing 36
 
-        button:
-            style "extras_card_button"
-            action ShowMenu("cg_gallery")
-            vbox:
-                xalign 0.5
-                yalign 0.5
-                spacing 8
-                text _("GALLERY") style "extras_card_title"
-                text (__("CG 鉴赏  %d / %d") % (unlocked, len(cg_entries))) style "extras_card_sub"
-                text _("点击进入") style "extras_hint_text"
+        hbox:
+            xalign 0.5
+            spacing 64
 
-        button:
-            style "extras_card_button"
-            action ShowMenu("music_room")
-            vbox:
+            button:
+                style "extras_card_button"
+                action ShowMenu("cg_gallery")
+                vbox:
+                    xalign 0.5
+                    yalign 0.5
+                    spacing 10
+                    text _("GALLERY") style "extras_card_title"
+                    text (__("CG 鉴赏  %d / %d") % (_stats["cg_unlocked"], _stats["cg_total"])) style "extras_card_sub"
+                    text _("点击进入") style "extras_hint_text"
+
+            button:
+                style "extras_card_button"
+                action ShowMenu("music_room")
+                vbox:
+                    xalign 0.5
+                    yalign 0.5
+                    spacing 10
+                    text _("MUSIC") style "extras_card_title"
+                    text (__("音乐鉴赏  %d 首") % _stats["music_total"]) style "extras_card_sub"
+                    text _("点击进入") style "extras_hint_text"
+
+        if _has_extra_cards:
+            hbox:
                 xalign 0.5
-                yalign 0.5
-                spacing 8
-                text _("MUSIC") style "extras_card_title"
-                text (__("音乐鉴赏  %d 首") % len(music_tracks)) style "extras_card_sub"
-                text _("点击进入") style "extras_hint_text"
+                spacing 40
+
+                for _card in PROJECT_EXTRA_CARDS:
+                    button:
+                        style "extras_subcard_button"
+                        action _card["action"]
+                        hbox:
+                            xalign 0.5
+                            yalign 0.5
+                            spacing 20
+
+                            if _card.get("visual"):
+                                add render_visual(_card["visual"], default_size=(64, 64)) yalign 0.5
+
+                            vbox:
+                                yalign 0.5
+                                spacing 6
+                                text _card.get("title", "") style "extras_subcard_title"
+                                if _card.get("sub"):
+                                    text _card["sub"] style "extras_card_sub"
 
     textbutton _("返回") action Return() style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -36
     key "game_menu" action Return()
 
 
-## CG 鉴赏（支持自动分页） ######################################################
+## CG 鉴赏（支持自动分页与 SVG 插画） ###########################################
 
 screen cg_gallery():
     tag menu
@@ -113,28 +186,29 @@ screen cg_gallery():
     $ _cur_page = min(cg_page, _total_pages - 1)
     $ _page_items = cg_entries[_cur_page * _per_page : (_cur_page + 1) * _per_page]
 
-    $ unlocked = sum(1 for cid, title, filename, tag in cg_entries if is_cg_unlocked(cid))
-    $ pct = int(round(100.0 * unlocked / max(1, len(cg_entries))))
+    $ _stats = get_game_completion_stats()
 
     add "gui/extras_bg.png"
     text _("GALLERY") style "extras_heading_text" xpos 64 ypos 22
-    text (__("完成度  %d%%") % pct) style "extras_meta_text" xalign 1.0 xoffset -64 ypos 40
+    text (__("完成度  %d%%") % _stats["cg_pct"]) style "extras_meta_text" xalign 1.0 xoffset -64 ypos 40
 
     grid 4 3:
         xalign 0.5
-        ypos 165
+        ypos 160
         spacing 20
 
         for cid, title, filename, tag in _page_items:
             vbox:
+                xsize 340
+                ysize 226
                 spacing 6
                 $ is_unlocked = is_cg_unlocked(cid)
                 $ path = _resolve_cg_path(filename)
-                if is_unlocked and renpy.loadable(path):
+                if is_unlocked and _cg_is_loadable(path):
                     button:
                         style "extras_thumb_button"
                         action Show("cg_view", image=path)
-                        add path xysize (340, 191)
+                        add render_visual(path, default_size=(340, 191)) xysize (340, 191)
                 else:
                     frame:
                         style "extras_locked_frame"
@@ -146,13 +220,18 @@ screen cg_gallery():
                 text _(title) style "extras_thumb_title"
 
         for i in range(_per_page - len(_page_items)):
-            frame:
-                style "extras_locked_frame"
-                text "—":
-                    xalign 0.5
-                    yalign 0.5
-                    color "#7FC8C066"
-                    size 30
+            vbox:
+                xsize 340
+                ysize 226
+                spacing 6
+                frame:
+                    style "extras_locked_frame"
+                    text "—":
+                        xalign 0.5
+                        yalign 0.5
+                        color "#7FC8C066"
+                        size 30
+                null height 24
 
     if _total_pages > 1:
         hbox:
@@ -177,25 +256,23 @@ screen cg_gallery():
                 style "extras_back_button"
                 sensitive (_cur_page < _total_pages - 1)
 
-    text _("点击缩略图全屏查看") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -46
+    text _("点击缩略图全屏查看") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -36
     textbutton _("返回") action (ShowMenu("main_menu") if main_menu else ShowMenu("extras")) style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -36
     key "game_menu" action (ShowMenu("main_menu") if main_menu else ShowMenu("extras"))
 
 
-## 音乐鉴赏（支持滚动列表） #####################################################
+## 音乐鉴赏（使用九宫格自适应面板，支持滚动列表） #################################
 
 screen music_room():
     tag menu
 
     $ playing = renpy.music.get_playing("music")
     $ current = next((t for t, p in music_tracks if _track_matches(playing, p)), None)
-    $ heard = sum(1 for i in range(len(music_tracks))
-                  if getattr(persistent, "music_%02d" % (i + 1), False))
-    $ pct = int(round(100.0 * heard / max(1, len(music_tracks))))
+    $ _stats = get_game_completion_stats()
 
     add "gui/extras_bg.png"
     text _("MUSIC") style "extras_heading_text" xpos 64 ypos 22
-    text (__("完成度  %d%%") % pct) style "extras_meta_text" xalign 1.0 xoffset -64 ypos 40
+    text (__("完成度  %d%%") % _stats["music_pct"]) style "extras_meta_text" xalign 1.0 xoffset -64 ypos 40
 
     frame:
         style "extras_now_frame"
@@ -212,38 +289,50 @@ screen music_room():
             text (current if current else _("未播放")) style "extras_now_title"
             text PROJECT_MUSIC_SUBTITLE style "extras_now_sub"
 
-    add "gui/extras_panel.png" xalign 0.5 ypos 235
+    frame:
+        style "extras_music_panel_frame"
+        xalign 0.5
+        ypos 235
+        xsize 1680
+        ysize 700
 
-    if music_tracks:
-        $ _mid = (len(music_tracks) + 1) // 2
-        viewport:
-            xalign 0.5
-            ypos 264
-            xsize 1560
-            ysize 640
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
+        if music_tracks:
+            $ _mid = (len(music_tracks) + 1) // 2
+            viewport:
+                xfill True
+                yfill True
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
 
-            hbox:
-                xalign 0.5
-                spacing 56
+                hbox:
+                    xalign 0.5
+                    spacing 56
 
-                vbox:
-                    spacing 2
-                    for i in range(0, _mid):
-                        use music_row(i)
+                    vbox:
+                        spacing 2
+                        for i in range(0, _mid):
+                            use music_row(i)
 
-                vbox:
-                    spacing 2
-                    for i in range(_mid, len(music_tracks)):
-                        use music_row(i)
-    else:
-        text _("暂无已收录的音乐") style "extras_meta_text" xalign 0.5 ypos 420
+                    vbox:
+                        spacing 2
+                        for i in range(_mid, len(music_tracks)):
+                            use music_row(i)
+        else:
+            text _("暂无已收录的音乐") style "extras_meta_text" xalign 0.5 yalign 0.5
 
-    text _("点击曲目立即播放，自动循环") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -46
-    textbutton _("停止播放") action Stop("music") style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -220 yoffset -36
-    textbutton _("返回") action (ShowMenu("main_menu") if main_menu else ShowMenu("extras")) style "extras_back_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -36
+    text _("点击曲目立即播放，自动循环") style "extras_hint_text" xpos 64 yalign 1.0 yoffset -36
+
+    hbox:
+        xalign 1.0
+        yalign 1.0
+        xoffset -64
+        yoffset -36
+        spacing 28
+
+        textbutton _("停止播放") action Stop("music") style "extras_back_button"
+        textbutton _("返回") action (ShowMenu("main_menu") if main_menu else ShowMenu("extras")) style "extras_back_button"
+
     key "game_menu" action (ShowMenu("main_menu") if main_menu else ShowMenu("extras"))
 
 
@@ -277,7 +366,7 @@ screen cg_view(image):
     zorder 200
 
     add Solid("#000000")
-    add image xalign 0.5 yalign 0.5 xysize (1920, 1080)
+    add render_visual(image, default_size=(1920, 1080)) xalign 0.5 yalign 0.5 xysize (1920, 1080)
 
     text _("点击任意处返回"):
         xalign 0.5
@@ -322,6 +411,20 @@ style extras_card_button:
     xsize 560
     ysize 300
     padding (40, 30)
+
+style extras_subcard_button:
+    background Frame("gui/extras_panel.png", 44, 44)
+    hover_background Frame("gui/extras_panel_hover.png", 44, 44)
+    xsize 420
+    ysize 150
+    padding (28, 20)
+
+style extras_subcard_title:
+    font "fonts/NotoSerifCJKsc-Regular.otf"
+    size 34
+    color "#7FC8C0"
+    hover_color "#F2C77E"
+    outlines [(2, "#061416", 0, 0)]
 
 style extras_card_title:
     font "fonts/NotoSerifCJKsc-Regular.otf"
@@ -370,6 +473,10 @@ style extras_thumb_title:
 style extras_now_frame:
     background Frame("gui/extras_panel.png", 44, 44)
     padding (28, 10)
+
+style extras_music_panel_frame:
+    background Frame("gui/extras_panel.png", 44, 44)
+    padding (48, 30)
 
 style extras_now_title:
     font "fonts/NotoSerifCJKsc-Regular.otf"

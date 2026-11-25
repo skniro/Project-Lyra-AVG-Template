@@ -88,3 +88,7 @@ translate japanese strings:
 
     old "暂无制作人员信息。"
     new "クレジット情報はまだありません。"
+
+    # game/core/content_pages.rpy
+    old "暂无内容。"
+    new "コンテンツはまだありません。"

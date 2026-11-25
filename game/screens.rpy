@@ -447,7 +447,7 @@ screen quick_menu():
                     xalign 1.0
                     yalign 1.0
                     xoffset -14
-                    yoffset -78
+                    yoffset -74
                     spacing 2
 
                     use quick_side_button("gui/icon_close.png", "CLOSE", HideInterface())
@@ -478,6 +478,7 @@ screen quick_side_button(icon, label, act):
 
         hbox:
             xalign 1.0
+            yalign 0.5
             spacing 8
 
             add icon xysize (28, 28) yalign 0.5
@@ -489,9 +490,9 @@ screen custom_keys():
     if renpy.get_screen("say") and not renpy.get_screen("input"):
 
         if persistent.key_s == "quicksave":
-            key "K_s" action QuickSave()
+            key "K_s" action QuickSave(message=_("已快速保存"))
         if persistent.key_l == "quickload":
-            key "K_l" action QuickLoad()
+            key "K_l" action QuickLoadAction()
         if persistent.key_up == "history":
             key "K_UP" action ShowMenu("history")
 
@@ -500,6 +501,11 @@ screen custom_keys():
 
         if persistent.mouse_right == "hide":
             key "mouseup_3" action HideInterface()
+
+        if persistent.mouse_wheel == "hide":
+            key "mouseup_2" action HideInterface()
+        elif persistent.mouse_wheel == "menu":
+            key "mouseup_2" action ShowMenu("preferences")
 
         if persistent.mouse_wheel_up == "history":
             key "mousedown_4" action ShowMenu("history")
@@ -510,6 +516,10 @@ screen custom_keys():
             key "mousedown_5" action HideInterface()
         elif persistent.mouse_wheel_down == "forward":
             key "mousedown_5" action RollForward()
+
+        if persistent.mouse_side == "page":
+            key "mouseup_4" action Rollback()
+            key "mouseup_5" action RollForward()
 
 
 ## 此代码确保只要用户没有主动隐藏界面，就会在游戏中显示 quick_menu 屏幕。
@@ -563,7 +573,7 @@ style quick_side_button:
     background None
     hover_background "#7FC8C022"
     padding (6, 2)
-    xsize 210
+    xsize 156
 
 style quick_side_label:
     font gui.text_font
@@ -669,7 +679,7 @@ screen main_menu():
 
     add gui.main_menu_background
     if PROJECT_SHOW_LOGO_IMAGE and PROJECT_LOGO_IMAGE:
-        add PROJECT_LOGO_IMAGE xalign 0.5 yalign 0.06
+        add render_visual(PROJECT_LOGO_IMAGE) xalign 0.5 yalign 0.06
 
     if PROJECT_SHOW_MAIN_MENU_TITLE_TEXT:
         if PROJECT_TITLE_EN:
@@ -729,6 +739,7 @@ screen main_menu_navigation():
             background None
             xsize 56
             ysize 72
+            yalign 0.5
 
             if main_menu_page == 1:
                 button:
@@ -741,11 +752,14 @@ screen main_menu_navigation():
 
         frame:
             background None
-            xsize 1060
+            xsize 1120
+            ysize 72
+            yalign 0.5
 
             hbox:
                 xalign 0.5
-                spacing 56
+                yalign 0.5
+                spacing 44
 
                 if main_menu_page == 0:
 
@@ -760,12 +774,15 @@ screen main_menu_navigation():
                     textbutton _("GALLERY") action ShowMenu("cg_gallery")
                     textbutton _("MUSIC") action ShowMenu("music_room")
                     textbutton _("CREDITS") action ShowMenu("credits")
+                    for _mm_label, _mm_action in PROJECT_MAIN_MENU_EXTRA_ITEMS:
+                        textbutton _mm_label action _mm_action
 
         # 右侧箭头占位（第一页显示）
         frame:
             background None
             xsize 56
             ysize 72
+            yalign 0.5
 
             if main_menu_page == 0:
                 button:
@@ -820,6 +837,7 @@ style mainmenu_button_text is button_text
 style mainmenu_button:
     background None
     padding (14, 8)
+    yalign 0.5
 
 style mainmenu_button_text:
     font "fonts/NotoSerifCJKsc-Regular.otf"
@@ -828,6 +846,8 @@ style mainmenu_button_text:
     hover_color "#F2C77E"
     selected_color "#F4F1E8"
     outlines [(2, "#061416", 0, 0)]
+    xalign 0.5
+    yalign 0.5
 
 
 ## 游戏菜单屏幕 ######################################################################
@@ -1034,9 +1054,8 @@ screen file_slots(title, mode):
     add "gui/extras_bg.png"
 
     hbox:
-        xpos 60
+        xalign 0.5
         ypos 30
-        xanchor 0.0
         spacing 18
 
         frame:
@@ -1053,7 +1072,7 @@ screen file_slots(title, mode):
 
         frame:
             style "save_info_panel"
-            xsize 1240
+            xsize 1282
             ysize 210
 
             vbox:
@@ -1071,13 +1090,15 @@ screen file_slots(title, mode):
                 if mode == "save":
                     hbox:
                         spacing 10
+                        yalign 0.5
                         text _("备注") style "save_note_label"
 
                         frame:
                             background "#FFFFFF"
-                            padding (8, 2)
+                            padding (10, 2)
                             xsize 520
-                            ysize 30
+                            ysize 34
+                            yalign 0.5
 
                             if save_note_editing:
                                 input value SaveNoteInputValue("save_name") style "save_note_input" length 40
@@ -1127,7 +1148,8 @@ screen file_slots(title, mode):
         action FilePagePrevious(max=15)
         style "save_side_button"
         xpos 14
-        yalign 0.5
+        ypos 632
+        yanchor 0.5
 
         vbox:
             spacing 0
@@ -1141,7 +1163,8 @@ screen file_slots(title, mode):
         style "save_side_button"
         xalign 1.0
         xoffset -14
-        yalign 0.5
+        ypos 632
+        yanchor 0.5
 
         vbox:
             spacing 0
@@ -1150,25 +1173,25 @@ screen file_slots(title, mode):
                 text ch style "save_side_text"
             text "▶" style "save_side_arrow"
 
-    textbutton _("删除"):
-        action FileDelete(sel, confirm=True)
-        style "save_bottom_button"
-        xpos 60
+    hbox:
+        xpos 160
         yalign 1.0
         yoffset -16
+        spacing 28
 
-    textbutton _("跳至最近一次的存档"):
-        action FileLoad(1, page="auto")
-        style "save_bottom_button"
-        xpos 220
-        yalign 1.0
-        yoffset -16
+        textbutton _("删除"):
+            action FileDelete(sel, confirm=True)
+            style "save_bottom_button"
+
+        textbutton _("跳至最近一次的存档"):
+            action FileLoad(1, page="auto")
+            style "save_bottom_button"
 
     textbutton _("关闭"):
         action Return()
         style "save_bottom_button"
         xalign 1.0
-        xoffset -60
+        xoffset -160
         yalign 1.0
         yoffset -16
 
@@ -1375,11 +1398,11 @@ screen preferences():
 
     add "gui/extras_bg.png"
 
-    text _("OPTIONS") style "options_heading" xpos 64 ypos 22
+    text _("OPTIONS") style "options_heading" xpos 120 ypos 22
 
     hbox:
-        xpos 430
-        ypos 42
+        xpos 420
+        ypos 40
         spacing 12
 
         textbutton _("基本设置") action SetVariable("prefs_tab", "basic") style "options_tab" selected (prefs_tab == "basic")
@@ -1426,8 +1449,8 @@ screen preferences():
         else:
             use prefs_system
 
-    textbutton _("恢复默认设置") action Preference("reset") style "options_footer_button" xpos 64 yalign 1.0 yoffset -36
-    textbutton _("关闭") action Return() style "options_footer_button" xalign 1.0 yalign 1.0 xoffset -64 yoffset -36
+    textbutton _("恢复默认设置") action Preference("reset") style "options_footer_button" xpos 120 yalign 1.0 yoffset -36
+    textbutton _("关闭") action Return() style "options_footer_button" xalign 1.0 yalign 1.0 xoffset -120 yoffset -36
 
     key "game_menu" action Return()
 
@@ -1887,6 +1910,9 @@ style options_segment_text is button_text:
     selected_color "#091E22"
     outlines [(2, "#061416", 0, 0)]
     selected_outlines [(1, "#7FC8C0", 0, 0)]
+    xalign 0.5
+    yalign 0.5
+    textalign 0.5
 
 style options_segment_disabled is button:
     background Frame("gui/pref_segment_idle.png", 20, 20)
@@ -1898,6 +1924,9 @@ style options_segment_disabled_text is button_text:
     size 25
     color "#7A8C93"
     outlines [(2, "#061416", 0, 0)]
+    xalign 0.5
+    yalign 0.5
+    textalign 0.5
 
 style menu_home_button is options_segment:
     xsize 520
@@ -1923,6 +1952,9 @@ style options_scale_text is button_text:
     selected_color "#091E22"
     outlines [(2, "#061416", 0, 0)]
     selected_outlines [(1, "#7FC8C0", 0, 0)]
+    xalign 0.5
+    yalign 0.5
+    textalign 0.5
 
 style options_check_button is check_button:
     foreground Transform("gui/pref_check_[prefix_]foreground.png", yoffset=4)
@@ -1941,6 +1973,8 @@ style options_check_button_text is check_button_text:
 style options_slider is bar:
     xsize 1000
     ysize 22
+    yalign 0.5
+    thumb_offset 14
     left_bar Solid("#7FC8C0")
     right_bar Solid("#174A4E")
     thumb "gui/pref_thumb.png"
@@ -1955,6 +1989,7 @@ style options_preview_text:
     font gui.text_font
     size 24
     color "#F4F1E8"
+    yalign 0.5
     outlines [(2, "#061416", 0, 0)]
 
 
@@ -2019,8 +2054,8 @@ screen history():
 
     add "gui/log_bg.png"
 
-    text "LOG" style "log_title" xpos 64 ypos 26
-    text _("回顾已读对白") style "log_subtitle" xpos 168 ypos 42
+    text "LOG" style "log_title" xpos 160 ypos 26
+    text _("回顾已读对白") style "log_subtitle" xpos 268 ypos 42
 
     frame:
         style "log_list_frame"
@@ -2030,7 +2065,7 @@ screen history():
         ysize 846
 
         viewport:
-            xsize 1580
+            xsize 1600
             ysize 830
             mousewheel True
             draggable True
@@ -2047,7 +2082,7 @@ screen history():
 
                     frame:
                         style ("log_entry_active" if is_last else "log_entry")
-                        xsize 1520
+                        xsize 1556
 
                         hbox:
                             spacing 18
@@ -2246,7 +2281,7 @@ style manual_arrow_text:
 
 style manual_bottom_bar:
     background "#091E22CC"
-    xsize 1720
+    xsize 1660
     padding (24, 10)
 
 style manual_page_button:
@@ -2279,49 +2314,60 @@ screen help():
     tag menu
 
     default manual_page = 0
-    $ manual_pages = 3
+    $ _extra_pages = PROJECT_MANUAL_EXTRA_PAGES if PROJECT_MANUAL_EXTRA_PAGES else []
+    $ manual_pages = 3 + len(_extra_pages)
+    $ _mp = min(manual_page, manual_pages - 1)
 
     add "gui/log_bg.png"
     add "gui/manual_banner.png" xalign 0.5 ypos 0
 
-    text "MANUAL" style "manual_title" xpos 60 ypos 18
-    text _("游戏说明") style "manual_title_zh" xpos 290 ypos 30
-    text ("PAGE %d" % (manual_page + 1)) style "manual_page_no" xalign 1.0 xoffset -60 ypos 38
+    text "MANUAL" style "manual_title" xpos 130 ypos 18
+    text _("游戏说明") style "manual_title_zh" xpos 360 ypos 30
+    text ("PAGE %d" % (_mp + 1)) style "manual_page_no" xalign 1.0 xoffset -130 ypos 38
 
     frame:
         style "manual_panel_frame"
         xalign 0.5
         ypos 150
-        xsize 1720
+        xsize 1660
         ysize 800
 
-        if manual_page == 0:
+        if _mp == 0:
             use manual_page_1
-        elif manual_page == 1:
+        elif _mp == 1:
             use manual_page_2
-        else:
+        elif _mp == 2:
             use manual_page_3
+        else:
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
+
+                use content_page_body(_extra_pages[_mp - 3])
 
     imagebutton:
         idle "gui/manual_prev.png"
         hover "gui/manual_prev_hover.png"
-        action SetScreenVariable("manual_page", max(0, manual_page - 1))
+        action SetScreenVariable("manual_page", max(0, _mp - 1))
         background None
         idle_background None
         padding (0, 0)
-        xpos 24
-        yalign 0.5
+        xpos 18
+        ypos 550
+        yanchor 0.5
 
     imagebutton:
         idle "gui/manual_next.png"
         hover "gui/manual_next_hover.png"
-        action SetScreenVariable("manual_page", min(manual_pages - 1, manual_page + 1))
+        action SetScreenVariable("manual_page", min(manual_pages - 1, _mp + 1))
         background None
         idle_background None
         padding (0, 0)
         xalign 1.0
-        xoffset -24
-        yalign 0.5
+        xoffset -18
+        ypos 550
+        yanchor 0.5
 
     frame:
         style "manual_bottom_bar"
@@ -2337,7 +2383,7 @@ screen help():
                 textbutton str(i + 1):
                     action SetScreenVariable("manual_page", i)
                     style "manual_page_button"
-                    selected (manual_page == i)
+                    selected (_mp == i)
 
             text _("左右箭头翻页") style "manual_hint"
             textbutton _("关闭") action Return() style "log_close_button"
@@ -2345,7 +2391,7 @@ screen help():
     key "game_menu" action Return()
 
 
-screen manual_section(title, body, icon=None):
+screen manual_section(title, body, icon=None, visual=None, visual_size=None):
 
     vbox:
         spacing 6
@@ -2355,8 +2401,11 @@ screen manual_section(title, body, icon=None):
             yalign 0.5
 
             if icon:
-                add icon xysize (30, 30) yalign 0.5
+                add render_visual(icon, default_size=(30, 30)) yalign 0.5
             text title style "manual_section_title"
+
+        if visual:
+            add render_visual(visual, default_size=visual_size)
 
         text body style "manual_body"
 
@@ -2637,6 +2686,7 @@ style confirm_button_text:
     color "#174A4E"
     hover_color "#091E22"
     xalign 0.5
+    yalign 0.5
     textalign 0.5
 
 

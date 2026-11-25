@@ -1,10 +1,6 @@
 # ==============================================================================
 # 多语言支持：首次启动语言选择 + 运行中切换辅助 (Template-Owned)
 # ==============================================================================
-# 语言模型：
-#   preferences.language = None        -> 中文原版（游戏源码）
-#   preferences.language = "japanese"  -> game/tl/japanese/
-#   其他启用语言                       -> 对应 game/tl/<lang>/
 
 init python:
 
@@ -44,23 +40,23 @@ screen language_select():
 
     add gui.main_menu_background
     if PROJECT_SHOW_LOGO_IMAGE and PROJECT_LOGO_IMAGE:
-        add PROJECT_LOGO_IMAGE xalign 0.5 yalign 0.06
+        add render_visual(PROJECT_LOGO_IMAGE) xalign 0.5 yalign 0.06
 
     frame:
-        background "#061416B8"
-        padding (64, 44)
+        background "#061416C8"
+        padding (64, 42)
         xalign 0.5
-        yalign 0.56
+        yalign 0.68
 
         vbox:
             xalign 0.5
-            spacing 24
+            spacing 22
 
             if PROJECT_TITLE_JA:
                 text PROJECT_TITLE_JA:
                     xalign 0.5
                     font "fonts/NotoSerifCJKsc-Regular.otf"
-                    size 56
+                    size 54
                     color "#F4F1E8"
                     outlines [(3, "#061416", 0, 0)]
 
@@ -70,17 +66,17 @@ screen language_select():
                 size 32
                 color "#B9CBD3"
 
-            null height 12
+            add svg_divider(width=520, height=16) xalign 0.5
 
             text "言語を選択 / 请选择语言":
                 xalign 0.5
                 font gui.text_font
-                size 28
+                size 26
                 color "#F2C77E"
 
             hbox:
                 xalign 0.5
-                spacing 72
+                spacing 64
 
                 for _lang_label, _renpy_code, _ui_code, _enabled in PROJECT_LANGUAGES:
                     if _enabled:
