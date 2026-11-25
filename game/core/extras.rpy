@@ -38,7 +38,7 @@ init python:
     def unlock_all_extras():
         """开发/测试辅助：一键解锁全部 CG、音乐、回想与流程图节点。"""
         for entry in cg_entries:
-            cid, _, _, _ = _cg_fields(entry)
+            cid, _title, _vars, _tag = _cg_fields(entry)
             unlock_cg(cid)
         for index in range(len(music_tracks)):
             mark_music(index)
@@ -63,7 +63,7 @@ init python:
     def unlock_seen_cgs():
         """当指定 tag 的 CG 正在屏幕显示时自动解锁。"""
         for entry in cg_entries:
-            cid, _, _, tag = _cg_fields(entry)
+            cid, _title, _vars, tag = _cg_fields(entry)
             if tag and renpy.showing(tag):
                 unlock_cg(cid)
 
@@ -131,7 +131,7 @@ init python:
         # 若正在播放且切换为单曲循环或列表模式，刷新当前曲目 loop 状态。
         playing = renpy.music.get_playing("music")
         if playing and 0 <= _music_current_index < len(music_tracks):
-            _, path, _ = _track_fields(music_tracks[_music_current_index])
+            _t, path, _a = _track_fields(music_tracks[_music_current_index])
             if _track_matches(playing, path):
                 renpy.music.queue(path, channel="music", loop=(_music_play_mode == "single"))
 
@@ -154,7 +154,7 @@ init python:
         if not playing:
             return
         for index, entry in enumerate(music_tracks):
-            _, path, _ = _track_fields(entry)
+            _t, path, _a = _track_fields(entry)
             if _track_matches(playing, path):
                 mark_music(index)
 
@@ -403,7 +403,7 @@ screen music_room():
 
     $ playing = renpy.music.get_playing("music")
     $ _cur_entry = next((e for e in music_tracks if _track_matches(playing, _track_fields(e)[1])), None)
-    $ _cur_title, _, _cur_artist = _track_fields(_cur_entry) if _cur_entry else ("", "", "")
+    $ _cur_title, _cur_path, _cur_artist = _track_fields(_cur_entry) if _cur_entry else ("", "", "")
     $ _stats = get_game_completion_stats()
 
     timer 0.4 repeat True action Function(_music_auto_advance_tick)

@@ -146,7 +146,7 @@ screen memories():
                                     text _("未解锁") xalign 0.5 yalign 0.5 color "#7FC8C0" size 22
                                 text _("？？？") style "mem_card_title"
 
-            for _ in range(_per_page - len(_page_items)):
+            for _empty_idx in range(_per_page - len(_page_items)):
                 frame:
                     style "mem_card_locked"
                     frame:
