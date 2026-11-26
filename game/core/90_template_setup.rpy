@@ -3,7 +3,7 @@
 # ==============================================================================
 # 在所有项目配置与资源脚本加载后（init 1），将 PROJECT_* 配置同步到引擎子系统。
 
-init 1 python:
+init 1 python hide:
 
     # 1. 角色语音通道注册（含系统音效通道）
     try:
@@ -21,9 +21,9 @@ init 1 python:
         NPC_TAGS.update(PROJECT_CHARACTER_LAYOUT.get("npc_tags") or ())
         NPC_LARGE_TAGS.update(PROJECT_CHARACTER_LAYOUT.get("npc_large_tags") or ())
         if PROJECT_CHARACTER_LAYOUT.get("main_left_tag") is not None:
-            MAIN_LEFT_TAG = PROJECT_CHARACTER_LAYOUT.get("main_left_tag")
+            store.MAIN_LEFT_TAG = PROJECT_CHARACTER_LAYOUT.get("main_left_tag")
         if PROJECT_CHARACTER_LAYOUT.get("main_right_tag") is not None:
-            MAIN_RIGHT_TAG = PROJECT_CHARACTER_LAYOUT.get("main_right_tag")
+            store.MAIN_RIGHT_TAG = PROJECT_CHARACTER_LAYOUT.get("main_right_tag")
 
     # 3. 同步角色立绘偏移、自动语音映射、CG/音乐清单
     if PROJECT_IMAGE_OFFSETS:
@@ -43,15 +43,15 @@ init 1 python:
         _aid = _ach.get("id")
         if not _aid:
             continue
-        _kwargs = {}
+        _ach_kwargs = {}
         if _ach.get("steam"):
-            _kwargs["steam"] = _ach["steam"]
+            _ach_kwargs["steam"] = _ach["steam"]
         if _ach.get("stat_max"):
-            _kwargs["stat_max"] = _ach["stat_max"]
+            _ach_kwargs["stat_max"] = _ach["stat_max"]
         if _ach.get("stat_modulo"):
-            _kwargs["stat_modulo"] = _ach["stat_modulo"]
+            _ach_kwargs["stat_modulo"] = _ach["stat_modulo"]
         try:
-            achievement.register(_aid, **_kwargs)
+            achievement.register(_aid, **_ach_kwargs)
         except Exception:
             pass
     try:
