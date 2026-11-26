@@ -99,69 +99,69 @@ screen memories():
                     style "options_segment"
                     selected (mem_group == _g)
 
-    if _page_items:
-        grid 4 2:
-            xalign 0.5
-            ypos 205
-            spacing 24
+    for _mem_key index _mem_key in ["%s_%d" % (str(mem_group), _cur_page)]:
+        fixed xfill True yfit True ypos 205 at template_tab_swap(dx=0, dy=8, dur=0.20):
+            if _page_items:
+                grid 4 2:
+                    xalign 0.5
+                    spacing 24
 
-            for item in _page_items:
-                $ _ok = is_memory_unlocked(item)
-                $ _lbl = item.get("label")
-                $ _thumb = item.get("thumb")
+                    for item in _page_items:
+                        $ _ok = is_memory_unlocked(item)
+                        $ _lbl = item.get("label")
+                        $ _thumb = item.get("thumb")
 
-                vbox:
-                    xsize 370
-                    ysize 315
-                    spacing 8
+                        vbox:
+                            xsize 370
+                            ysize 315
+                            spacing 8
 
-                    if _ok and _lbl and renpy.has_label(_lbl):
-                        button:
-                            style "mem_card_button"
-                            action Replay(_lbl)
+                            if _ok and _lbl and renpy.has_label(_lbl):
+                                button:
+                                    style "mem_card_button"
+                                    action Replay(_lbl)
 
-                            vbox:
-                                spacing 8
-                                if _thumb and (is_inline_svg(_thumb) or renpy.loadable(_thumb)):
-                                    add render_visual(_thumb, default_size=(346, 194)) xysize (346, 194)
-                                else:
-                                    frame:
-                                        style "extras_locked_frame"
-                                        xsize 346
-                                        ysize 194
-                                        text "REPLAY" xalign 0.5 yalign 0.5 color "#7FC8C0" size 26
+                                    vbox:
+                                        spacing 8
+                                        if _thumb and (is_inline_svg(_thumb) or renpy.loadable(_thumb)):
+                                            add render_visual(_thumb, default_size=(346, 194)) xysize (346, 194)
+                                        else:
+                                            frame:
+                                                style "extras_locked_frame"
+                                                xsize 346
+                                                ysize 194
+                                                text "REPLAY" xalign 0.5 yalign 0.5 color "#7FC8C0" size 26
 
-                                text item.get("title", "") style "mem_card_title"
-                                if item.get("desc"):
-                                    text item["desc"] style "mem_card_desc"
-                    else:
+                                        text item.get("title", "") style "mem_card_title"
+                                        if item.get("desc"):
+                                            text item["desc"] style "mem_card_desc"
+                            else:
+                                frame:
+                                    style "mem_card_locked"
+                                    vbox:
+                                        spacing 8
+                                        frame:
+                                            style "extras_locked_frame"
+                                            xsize 346
+                                            ysize 194
+                                            text _("未解锁") xalign 0.5 yalign 0.5 color "#7FC8C0" size 22
+                                        text _("？？？") style "mem_card_title" xalign 0.5
+
+                    for _empty_idx in range(_per_page - len(_page_items)):
                         frame:
                             style "mem_card_locked"
-                            vbox:
-                                spacing 8
-                                frame:
-                                    style "extras_locked_frame"
-                                    xsize 346
-                                    ysize 194
-                                    text _("未解锁") xalign 0.5 yalign 0.5 color "#7FC8C0" size 22
-                                text _("？？？") style "mem_card_title"
-
-            for _empty_idx in range(_per_page - len(_page_items)):
+                            frame:
+                                style "extras_locked_frame"
+                                xsize 346
+                                ysize 194
+                                text "—" xalign 0.5 yalign 0.5 color "#7FC8C066" size 30
+            else:
                 frame:
-                    style "mem_card_locked"
-                    frame:
-                        style "extras_locked_frame"
-                        xsize 346
-                        ysize 194
-                        text "—" xalign 0.5 yalign 0.5 color "#7FC8C066" size 30
-    else:
-        frame:
-            style "extras_music_panel_frame"
-            xalign 0.5
-            ypos 205
-            xsize 1680
-            ysize 688
-            text _("暂无已收录的场景回想") style "extras_meta_text" xalign 0.5 yalign 0.5
+                    style "extras_music_panel_frame"
+                    xalign 0.5
+                    xsize 1680
+                    ysize 688
+                    text _("暂无已收录的场景回想") style "extras_meta_text" xalign 0.5 yalign 0.5
 
     if _total_pages > 1:
         hbox:

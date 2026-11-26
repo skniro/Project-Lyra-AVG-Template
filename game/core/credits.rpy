@@ -28,16 +28,18 @@ screen credits():
         xsize 1660
         ysize 784
 
-        viewport:
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
+        for _cr_idx index _cr_idx in [_cur_idx]:
+            fixed xfill True yfill True at template_tab_swap(dx=16, dy=0, dur=0.22):
+                viewport:
+                    scrollbars "vertical"
+                    mousewheel True
+                    draggable True
 
-            vbox:
-                spacing 22
+                    vbox:
+                        spacing 22
 
-                for _sec in _cur_sections:
-                    use content_section_block(_sec, 1520)
+                        for _sec in _cur_sections:
+                            use content_section_block(_sec, 1520)
 
     imagebutton:
         idle "gui/manual_prev.png"

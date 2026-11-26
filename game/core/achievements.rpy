@@ -189,62 +189,64 @@ screen achievements():
         xsize 1680
         ysize 748
 
-        if _items:
-            viewport:
-                xfill True
-                yfill True
-                scrollbars "vertical"
-                mousewheel True
-                draggable True
+        for _ach_key index _ach_key in [str(ach_filter)]:
+            fixed xfill True yfill True at template_tab_swap(dx=0, dy=8, dur=0.20):
+                if _items:
+                    viewport:
+                        xfill True
+                        yfill True
+                        scrollbars "vertical"
+                        mousewheel True
+                        draggable True
 
-                vpgrid:
-                    cols 2
-                    spacing 20
-                    xalign 0.5
+                        vpgrid:
+                            cols 2
+                            spacing 20
+                            xalign 0.5
 
-                    for item in _items:
-                        $ _aid = item.get("id", "")
-                        $ _ok = is_achievement_unlocked(_aid)
-                        $ _hidden = bool(item.get("hidden", False)) and (not _ok)
-                        $ _smax = item.get("stat_max", None)
-                        $ _prog = achievement.get_progress(_aid) if _smax else 0
-                        $ _utime = get_achievement_unlock_time(_aid) if _ok else ""
+                            for item in _items:
+                                $ _aid = item.get("id", "")
+                                $ _ok = is_achievement_unlocked(_aid)
+                                $ _hidden = bool(item.get("hidden", False)) and (not _ok)
+                                $ _smax = item.get("stat_max", None)
+                                $ _prog = achievement.get_progress(_aid) if _smax else 0
+                                $ _utime = get_achievement_unlock_time(_aid) if _ok else ""
 
-                        frame:
-                            style ("ach_card_unlocked" if _ok else "ach_card_locked")
-                            xsize 760
-                            ysize 132
-
-                            hbox:
-                                spacing 18
-                                yalign 0.5
-
-                                if _ok and item.get("icon"):
-                                    add render_visual(item["icon"], default_size=(72, 72)) yalign 0.5
-                                else:
-                                    add _svg_trophy_badge(_ok, size=72) yalign 0.5
-
-                                vbox:
-                                    xsize 600
-                                    spacing 4
-                                    yalign 0.5
+                                frame:
+                                    style ("ach_card_unlocked" if _ok else "ach_card_locked")
+                                    xsize 760
+                                    ysize 132
 
                                     hbox:
-                                        xfill True
-                                        text (_("？？？") if _hidden else item.get("title", _aid)) style "ach_card_title"
-                                        if _utime:
-                                            text _utime style "ach_card_time" xalign 1.0 yalign 0.5
+                                        spacing 18
+                                        yalign 0.5
 
-                                    text (_("达成特定条件后解锁") if _hidden else item.get("desc", "")) style "ach_card_desc"
+                                        if _ok and item.get("icon"):
+                                            add render_visual(item["icon"], default_size=(72, 72)) yalign 0.5
+                                        else:
+                                            add _svg_trophy_badge(_ok, size=72) yalign 0.5
 
-                                    if _smax and not _hidden:
-                                        hbox:
-                                            spacing 10
+                                        vbox:
+                                            xsize 600
+                                            spacing 4
                                             yalign 0.5
-                                            bar value StaticValue(min(_prog, _smax), _smax) xsize 360 ysize 12 style "ach_progress_bar" yalign 0.5
-                                            text ("%d / %d" % (min(_prog, _smax), _smax)) style "ach_card_time" yalign 0.5
-        else:
-            text _("暂无成就记录") style "extras_meta_text" xalign 0.5 yalign 0.5
+
+                                            hbox:
+                                                xfill True
+                                                text (_("？？？") if _hidden else item.get("title", _aid)) style "ach_card_title"
+                                                if _utime:
+                                                    text _utime style "ach_card_time" xalign 1.0 yalign 0.5
+
+                                            text (_("达成特定条件后解锁") if _hidden else item.get("desc", "")) style "ach_card_desc"
+
+                                            if _smax and not _hidden:
+                                                hbox:
+                                                    spacing 10
+                                                    yalign 0.5
+                                                    bar value StaticValue(min(_prog, _smax), _smax) xsize 360 ysize 12 style "ach_progress_bar" yalign 0.5
+                                                    text ("%d / %d" % (min(_prog, _smax), _smax)) style "ach_card_time" yalign 0.5
+                else:
+                    text _("暂无成就记录") style "extras_meta_text" xalign 0.5 yalign 0.5
 
     if _steam_on:
         textbutton _("Steam 成就面板") action Function(steam_open_overlay, "Achievements") style "extras_back_button" xpos 64 yalign 1.0 yoffset -44

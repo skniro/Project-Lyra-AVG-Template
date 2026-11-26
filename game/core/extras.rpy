@@ -350,48 +350,49 @@ screen cg_gallery():
     text _("GALLERY") style "extras_heading_text" xpos 64 ypos 22
     text (__("完成度  %d%%") % _stats["cg_pct"]) style "extras_meta_text" xalign 1.0 xoffset -64 ypos 40
 
-    grid 4 3:
-        xalign 0.5
-        ypos 160
-        spacing 20
+    for _cg_key index _cg_key in [_cur_page]:
+        fixed xfill True yfit True ypos 160 at template_tab_swap(dx=16, dy=0, dur=0.22):
+            grid 4 3:
+                xalign 0.5
+                spacing 20
 
-        for entry in _page_items:
-            $ cid, title, variants, tag = _cg_fields(entry)
-            $ resolved_list = [_resolve_cg_path(v) for v in variants]
-            $ first_path = resolved_list[0] if resolved_list else ""
-            vbox:
-                xsize 340
-                ysize 226
-                spacing 6
-                $ is_unlocked = is_cg_unlocked(cid)
-                if is_unlocked and first_path and _cg_is_loadable(first_path):
-                    button:
-                        style "extras_thumb_button"
-                        action Show("cg_view", variants=resolved_list, title=title)
-                        add render_visual(first_path, default_size=(340, 191)) xysize (340, 191)
-                else:
-                    frame:
-                        style "extras_locked_frame"
-                        text (_("待生成") if is_unlocked else _("未解锁")):
-                            xalign 0.5
-                            yalign 0.5
-                            color "#7FC8C0"
-                            size 22
-                text (_("%s (%d张)") % (_(title), len(resolved_list)) if len(resolved_list) > 1 else _(title)) style "extras_thumb_title"
+                for entry in _page_items:
+                    $ cid, title, variants, tag = _cg_fields(entry)
+                    $ resolved_list = [_resolve_cg_path(v) for v in variants]
+                    $ first_path = resolved_list[0] if resolved_list else ""
+                    vbox:
+                        xsize 340
+                        ysize 226
+                        spacing 6
+                        $ is_unlocked = is_cg_unlocked(cid)
+                        if is_unlocked and first_path and _cg_is_loadable(first_path):
+                            button:
+                                style "extras_thumb_button"
+                                action Show("cg_view", variants=resolved_list, title=title)
+                                add render_visual(first_path, default_size=(340, 191)) xysize (340, 191)
+                        else:
+                            frame:
+                                style "extras_locked_frame"
+                                text (_("待生成") if is_unlocked else _("未解锁")):
+                                    xalign 0.5
+                                    yalign 0.5
+                                    color "#7FC8C0"
+                                    size 22
+                        text (_("%s (%d张)") % (_(title), len(resolved_list)) if len(resolved_list) > 1 else _(title)) style "extras_thumb_title"
 
-        for i in range(_per_page - len(_page_items)):
-            vbox:
-                xsize 340
-                ysize 226
-                spacing 6
-                frame:
-                    style "extras_locked_frame"
-                    text "—":
-                        xalign 0.5
-                        yalign 0.5
-                        color "#7FC8C066"
-                        size 30
-                null height 24
+                for i in range(_per_page - len(_page_items)):
+                    vbox:
+                        xsize 340
+                        ysize 226
+                        spacing 6
+                        frame:
+                            style "extras_locked_frame"
+                            text "—":
+                                xalign 0.5
+                                yalign 0.5
+                                color "#7FC8C066"
+                                size 30
+                        null height 24
 
     if _total_pages > 1:
         hbox:

@@ -37,12 +37,13 @@ screen language_select():
 
     modal True
     zorder 300
+    default leaving_lang = None
 
     add gui.main_menu_background
     if PROJECT_SHOW_LOGO_IMAGE and PROJECT_LOGO_IMAGE:
         add render_visual(PROJECT_LOGO_IMAGE) xalign 0.5 yalign 0.06
 
-    frame:
+    frame at template_tab_swap(dx=0, dy=12, dur=0.36):
         background "#061416C8"
         padding (64, 42)
         xalign 0.5
@@ -81,7 +82,7 @@ screen language_select():
                 for _lang_label, _renpy_code, _ui_code, _enabled in PROJECT_LANGUAGES:
                     if _enabled:
                         textbutton _lang_label:
-                            action Return(_ui_code)
+                            action If(leaving_lang is None, SetScreenVariable("leaving_lang", _ui_code))
                             style "mainmenu_button"
 
             text "後から OPTIONS で変更できます。 / 之后可在 OPTIONS 中更改。":
@@ -90,8 +91,18 @@ screen language_select():
                 size 20
                 color "#9FB6C0"
 
+    if leaving_lang is not None:
+        add Solid("#061416") at template_veil_fade_in(0.22)
+        timer 0.24 action Return(leaving_lang)
+
     # 必须选择后才能进入标题菜单。
     key "game_menu" action NullAction()
+
+
+# 切换回默认简体中文 (None) 时还原被 tl/japanese/manual.rpy 覆写的全局 layout 文案。
+translate None python:
+    layout.QUIT = "内容尚未保存，是否退出游戏？"
+    layout.MAIN_MENU = "是否返回标题界面？"
 
 
 # 日文断行规则（Ren'Py 的 style 属性 language）。

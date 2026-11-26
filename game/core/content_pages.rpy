@@ -106,12 +106,14 @@ screen content_page(page_id):
         xsize 1660
         ysize 784
 
-        viewport:
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
+        for _cp_idx index _cp_idx in [_idx]:
+            fixed xfill True yfill True at template_tab_swap(dx=16, dy=0, dur=0.22):
+                viewport:
+                    scrollbars "vertical"
+                    mousewheel True
+                    draggable True
 
-            use content_page_body(_pages[_idx])
+                    use content_page_body(_pages[_cp_idx])
 
     if _total > 1:
         imagebutton:

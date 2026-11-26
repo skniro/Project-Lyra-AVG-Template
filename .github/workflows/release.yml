@@ -1,0 +1,107 @@
+name: Release AVGTemplate
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Optional version tag override (defaults to v<template_version>)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version and check if release already exists
+        id: meta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          MANIFEST_VER=$(python3 -c 'import json; print(json.load(open("template.manifest.json", encoding="utf-8"))["template_version"])')
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          elif [[ -n "${INPUT_TAG}" ]]; then
+            TAG="${INPUT_TAG}"
+          else
+            TAG="v${MANIFEST_VER}"
+          fi
+
+          echo "version=${MANIFEST_VER}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release ${TAG} already exists; skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package clean AVGTemplate archive
+        if: steps.meta.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          PKG_DIR="AVGTemplate-${TAG}"
+          mkdir -p "dist/${PKG_DIR}"
+
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='dist/' \
+            --exclude='AVGTemplate.zip' \
+            --exclude='game/saves/' \
+            --exclude='game/cache/' \
+            --exclude='game/**/*.rpyc' \
+            --exclude='game/**/*.rpymc' \
+            --exclude='game/**/*.rpyb' \
+            --exclude='game/**/*.bak' \
+            --exclude='game/**/*.new' \
+            --exclude='game/**/*.old' \
+            --exclude='errors.txt' \
+            --exclude='files.txt' \
+            --exclude='image_cache.txt' \
+            --exclude='log.txt' \
+            --exclude='save_dump.txt' \
+            --exclude='traceback.txt' \
+            --exclude='dialogue.tab' \
+            --exclude='dialogue.txt' \
+            --exclude='strings.json' \
+            --exclude='*-dists/' \
+            --exclude='*.keystore' \
+            --exclude='*.jks' \
+            ./ "dist/${PKG_DIR}/"
+
+          (
+            cd dist
+            zip -r -q "AVGTemplate-${TAG}.zip" "${PKG_DIR}"
+            sha256sum "AVGTemplate-${TAG}.zip" > "AVGTemplate-${TAG}.sha256"
+          )
+          ls -lh dist/
+
+      - name: Create GitHub Release
+        if: steps.meta.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: "AVGTemplate ${{ steps.meta.outputs.tag }}"
+          generate_release_notes: true
+          files: |
+            dist/AVGTemplate-${{ steps.meta.outputs.tag }}.zip
+            dist/AVGTemplate-${{ steps.meta.outputs.tag }}.sha256

@@ -49,23 +49,29 @@ define config.has_voice = True
 
 ## 进入或退出游戏菜单。
 
-define config.enter_transition = dissolve
-define config.exit_transition = dissolve
+define config.enter_transition = Dissolve(0.25)
+define config.exit_transition = Dissolve(0.25)
 
 
 ## 各个游戏菜单之间的转场。
 
-define config.intra_transition = dissolve
+define config.intra_transition = Dissolve(0.22)
+
+
+## 首次语言选择结束进入主菜单，及载入/落幕过场。
+
+define config.end_splash_transition = Fade(0.0, 0.06, 0.50, color="#061416")
+define config.game_main_transition = Dissolve(0.32)
 
 
 ## 载入游戏后使用的转场。
 
-define config.after_load_transition = None
+define config.after_load_transition = Dissolve(0.38)
 
 
 ## 在游戏结束之后进入主菜单时使用的转场。
 
-define config.end_game_transition = None
+define config.end_game_transition = Dissolve(0.40)
 
 
 ## 用于控制在游戏开始标签不存在时转场的变量。作为替代，在显示初始化场景后使用

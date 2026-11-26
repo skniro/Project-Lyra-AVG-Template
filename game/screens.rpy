@@ -154,6 +154,19 @@ init python:
             return True
 
 
+transform template_tab_swap(dx=0, dy=8, dur=0.20):
+    subpixel True
+    alpha 0.0 xoffset dx yoffset dy
+    parallel:
+        linear (dur * 0.85) alpha 1.0
+    parallel:
+        easeout dur xoffset 0 yoffset 0
+
+transform template_veil_fade_in(dur=0.22):
+    alpha 0.0
+    linear dur alpha 1.0
+
+
 ################################################################################
 ## 样式
 ################################################################################
@@ -772,29 +785,31 @@ screen main_menu_navigation():
             ysize 72
             yalign 0.5
 
-            hbox:
-                xalign 0.5
-                yalign 0.5
-                spacing (44 if main_menu_page == 0 else 28)
+            for _mm_pg index _mm_pg in [main_menu_page]:
+                fixed xfill True yfill True at template_tab_swap(dx=18, dy=0, dur=0.22):
+                    hbox:
+                        xalign 0.5
+                        yalign 0.5
+                        spacing (44 if _mm_pg == 0 else 28)
 
-                if main_menu_page == 0:
+                        if _mm_pg == 0:
 
-                    textbutton _("START") action Start()
-                    textbutton _("LOAD") action ShowMenu("load")
-                    textbutton _("OPTIONS") action ShowMenu("preferences")
-                    textbutton _("MANUAL") action ShowMenu("help")
-                    textbutton _("EXIT") action Quit(confirm=False)
+                            textbutton _("START") action Start()
+                            textbutton _("LOAD") action ShowMenu("load")
+                            textbutton _("OPTIONS") action ShowMenu("preferences")
+                            textbutton _("MANUAL") action ShowMenu("help")
+                            textbutton _("EXIT") action Quit(confirm=False)
 
-                else:
+                        else:
 
-                    textbutton _("GALLERY") action ShowMenu("cg_gallery")
-                    textbutton _("MUSIC") action ShowMenu("music_room")
-                    textbutton _("MEMORIES") action ShowMenu("memories")
-                    textbutton _("CHART") action ShowMenu("flowchart")
-                    textbutton _("ACHIEVEMENT") action ShowMenu("achievements")
-                    textbutton _("CREDITS") action ShowMenu("credits")
-                    for _mm_label, _mm_action in PROJECT_MAIN_MENU_EXTRA_ITEMS:
-                        textbutton _mm_label action _mm_action
+                            textbutton _("GALLERY") action ShowMenu("cg_gallery")
+                            textbutton _("MUSIC") action ShowMenu("music_room")
+                            textbutton _("MEMORIES") action ShowMenu("memories")
+                            textbutton _("CHART") action ShowMenu("flowchart")
+                            textbutton _("ACHIEVEMENT") action ShowMenu("achievements")
+                            textbutton _("CREDITS") action ShowMenu("credits")
+                            for _mm_label, _mm_action in PROJECT_MAIN_MENU_EXTRA_ITEMS:
+                                textbutton _mm_label action _mm_action
 
         # 右侧箭头占位（第一页显示）
         frame:
@@ -1136,48 +1151,50 @@ screen file_slots(title, mode):
                             yalign 0.5
 
                             if save_note_editing:
-                                input value SaveNoteInputValue("save_name") style "save_note_input" length 40
+                                input value SaveNoteInputValue("save_name") style "save_note_input" length 40 yalign 0.5
                             else:
                                 button:
                                     action SetVariable("save_note_editing", True)
                                     background None
                                     hover_background "#D9E6EA"
+                                    padding (0, 0)
                                     xfill True
                                     yfill True
 
                                     text (save_name if save_name else _("点击输入备注")):
                                         style "save_note_input"
+                                        yalign 0.5
 
                         text _("点击备注框即可添加备注") style "save_note_hint"
                 else:
                     text FileTime(sel, format="%Y-%m-%d  %H:%M", empty="") style "save_note_hint"
 
-    grid 5 4:
-        xalign 0.5
-        ypos 256
-        xsize 1600
-        ysize 734
-        spacing 10
+    for _sg_key index _sg_key in [str(cur_page)]:
+        fixed xalign 0.5 ypos 256 xsize 1600 ysize 734 at template_tab_swap(dx=16, dy=0, dur=0.20):
+            grid 5 4:
+                xsize 1600
+                ysize 734
+                spacing 10
 
-        for i in range(20):
-            $ slot = i + 1
+                for i in range(20):
+                    $ slot = i + 1
 
-            if mode == "save":
-                $ slot_prompt = _("是否覆盖？") if FileLoadable(slot) else _("是否保存？")
-                $ slot_action = Confirm(slot_prompt, FileSave(slot, confirm=False), confirm_selected=True)
-            else:
-                $ slot_action = Confirm(_("是否读取？"), FileLoad(slot, confirm=False), confirm_selected=True)
+                    if mode == "save":
+                        $ slot_prompt = _("是否覆盖？") if FileLoadable(slot) else _("是否保存？")
+                        $ slot_action = Confirm(slot_prompt, FileSave(slot, confirm=False), confirm_selected=True)
+                    else:
+                        $ slot_action = Confirm(_("是否读取？"), FileLoad(slot, confirm=False), confirm_selected=True)
 
-            button:
-                style "save_slot_button"
-                action slot_action
-                hovered SetVariable("file_slot_sel", slot)
-                selected (sel == slot)
+                    button:
+                        style "save_slot_button"
+                        action slot_action
+                        hovered SetVariable("file_slot_sel", slot)
+                        selected (sel == slot)
 
-                if FileLoadable(slot):
-                    add FileScreenshot(slot) xysize (300, 164)
-                else:
-                    text ("+" if mode == "save" else "") style "save_slot_plus" xalign 0.5 yalign 0.5
+                        if FileLoadable(slot):
+                            add FileScreenshot(slot) xysize (300, 164)
+                        else:
+                            text ("+" if mode == "save" else "") style "save_slot_plus" xalign 0.5 yalign 0.5
 
     button:
         action FilePagePrevious(max=15, wrap=False, auto=False, quick=False)
@@ -1476,24 +1493,26 @@ screen preferences():
         xsize 1680
         ysize 780
 
-        if prefs_tab == "basic":
-            use prefs_basic
-        elif prefs_tab == "text1":
-            use prefs_text1
-        elif prefs_tab == "text2":
-            use prefs_text2
-        elif prefs_tab == "audio":
-            use prefs_audio
-        elif prefs_tab == "voice":
-            use prefs_voice
-        elif prefs_tab == "keyboard":
-            use prefs_keyboard
-        elif prefs_tab == "mouse":
-            use prefs_mouse
-        elif prefs_tab == "touch":
-            use prefs_touch
-        else:
-            use prefs_system
+        for _tab_key index _tab_key in [str(prefs_tab)]:
+            fixed xfill True yfill True at template_tab_swap(dx=0, dy=8, dur=0.20):
+                if _tab_key == "basic":
+                    use prefs_basic
+                elif _tab_key == "text1":
+                    use prefs_text1
+                elif _tab_key == "text2":
+                    use prefs_text2
+                elif _tab_key == "audio":
+                    use prefs_audio
+                elif _tab_key == "voice":
+                    use prefs_voice
+                elif _tab_key == "keyboard":
+                    use prefs_keyboard
+                elif _tab_key == "mouse":
+                    use prefs_mouse
+                elif _tab_key == "touch":
+                    use prefs_touch
+                else:
+                    use prefs_system
 
     textbutton _("恢复默认设置") action Preference("reset") style "options_footer_button" xpos 120 yalign 1.0 yoffset -44
     textbutton _("关闭") action Return() style "options_footer_button" xalign 1.0 yalign 1.0 xoffset -120 yoffset -44
@@ -2304,6 +2323,7 @@ style log_hint:
     yalign 0.5
 
 style log_close_button is save_bottom_button
+style log_close_button_text is save_bottom_button_text
 
 
 ## MANUAL 屏幕样式（Summer Pockets 风格） ###########################################
@@ -2407,19 +2427,21 @@ screen help():
         xsize 1660
         ysize 784
 
-        if _mp == 0:
-            use manual_page_1
-        elif _mp == 1:
-            use manual_page_2
-        elif _mp == 2:
-            use manual_page_3
-        else:
-            viewport:
-                scrollbars "vertical"
-                mousewheel True
-                draggable True
+        for _hp_idx index _hp_idx in [_mp]:
+            fixed xfill True yfill True at template_tab_swap(dx=16, dy=0, dur=0.22):
+                if _hp_idx == 0:
+                    use manual_page_1
+                elif _hp_idx == 1:
+                    use manual_page_2
+                elif _hp_idx == 2:
+                    use manual_page_3
+                else:
+                    viewport:
+                        scrollbars "vertical"
+                        mousewheel True
+                        draggable True
 
-                use content_page_body(_extra_pages[_mp - 3])
+                        use content_page_body(_extra_pages[_hp_idx - 3])
 
     imagebutton:
         idle "gui/manual_prev.png"
@@ -2705,14 +2727,21 @@ screen confirm(message, yes_action, no_action):
 
     add "gui/overlay/confirm.png"
 
-    frame:
+    $ _confirm_msg = message
+    if preferences.language != "japanese":
+        $ _confirm_msg = {
+            "内容が保存されていません。ゲームを終了しますか？": "内容尚未保存，是否退出游戏？",
+            "タイトル画面に戻りますか？": "是否返回标题界面？",
+        }.get(_confirm_msg, _confirm_msg)
+
+    frame at template_tab_swap(dx=0, dy=10, dur=0.20):
 
         vbox:
             xalign .5
             yalign .5
             spacing 30
 
-            label _(message):
+            label _(_confirm_msg):
                 style "confirm_prompt"
                 xalign 0.5
 
