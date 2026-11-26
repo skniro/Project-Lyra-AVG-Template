@@ -9,8 +9,14 @@ on:
       - "v*"
   workflow_dispatch:
     inputs:
+      backfill:
+        description: "Backfill GitHub Releases for all historical versions in git history"
+        type: boolean
+        required: false
+        default: false
       tag:
-        description: "Optional version tag override (defaults to v<template_version>)"
+        description: "Optional version tag override for single release (defaults to v<template_version>)"
+        type: string
         required: false
         default: ""
 
@@ -26,82 +32,141 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve version and check if release already exists
-        id: meta
+      - name: Build and publish missing GitHub Releases
         env:
           GH_TOKEN: ${{ github.token }}
+          BACKFILL: ${{ github.event.inputs.backfill == 'true' }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
+          GITHUB_REF_VALUE: ${{ github.ref }}
+          GITHUB_SHA_VALUE: ${{ github.sha }}
         run: |
-          set -euo pipefail
-          MANIFEST_VER=$(python3 -c 'import json; print(json.load(open("template.manifest.json", encoding="utf-8"))["template_version"])')
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            TAG="${GITHUB_REF#refs/tags/}"
-          elif [[ -n "${INPUT_TAG}" ]]; then
-            TAG="${INPUT_TAG}"
-          else
-            TAG="v${MANIFEST_VER}"
-          fi
+          python3 - <<'PY'
+          import json
+          import os
+          import shutil
+          import subprocess
+          import tempfile
+          import zipfile
+          from pathlib import Path
 
-          echo "version=${MANIFEST_VER}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          EXCLUDE_DIRS = {".git", ".github", "dist", "tmp", "game/saves", "game/cache"}
+          EXCLUDE_SUFFIXES = (".rpyc", ".rpymc", ".rpyb", ".bak", ".new", ".old", ".keystore", ".jks")
+          EXCLUDE_FILES = {
+              "AVGTemplate.zip", "errors.txt", "files.txt", "image_cache.txt",
+              "log.txt", "save_dump.txt", "traceback.txt",
+              "dialogue.tab", "dialogue.txt", "strings.json",
+          }
 
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Release ${TAG} already exists; skipping."
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          def run(cmd, check=True, capture=False):
+              return subprocess.run(
+                  cmd, check=check, text=True,
+                  stdout=subprocess.PIPE if capture else None,
+                  stderr=subprocess.PIPE if capture else None,
+              )
 
-      - name: Package clean AVGTemplate archive
-        if: steps.meta.outputs.exists == 'false'
-        env:
-          TAG: ${{ steps.meta.outputs.tag }}
-        run: |
-          set -euo pipefail
-          PKG_DIR="AVGTemplate-${TAG}"
-          mkdir -p "dist/${PKG_DIR}"
+          def get_manifest_ver(ref):
+              p = run(["git", "show", f"{ref}:template.manifest.json"], check=False, capture=True)
+              if p.returncode != 0:
+                  return None
+              try:
+                  return json.loads(p.stdout).get("template_version")
+              except Exception:
+                  return None
 
-          rsync -a \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='dist/' \
-            --exclude='AVGTemplate.zip' \
-            --exclude='game/saves/' \
-            --exclude='game/cache/' \
-            --exclude='game/**/*.rpyc' \
-            --exclude='game/**/*.rpymc' \
-            --exclude='game/**/*.rpyb' \
-            --exclude='game/**/*.bak' \
-            --exclude='game/**/*.new' \
-            --exclude='game/**/*.old' \
-            --exclude='errors.txt' \
-            --exclude='files.txt' \
-            --exclude='image_cache.txt' \
-            --exclude='log.txt' \
-            --exclude='save_dump.txt' \
-            --exclude='traceback.txt' \
-            --exclude='dialogue.tab' \
-            --exclude='dialogue.txt' \
-            --exclude='strings.json' \
-            --exclude='*-dists/' \
-            --exclude='*.keystore' \
-            --exclude='*.jks' \
-            ./ "dist/${PKG_DIR}/"
+          def release_exists(tag):
+              return run(["gh", "release", "view", tag], check=False, capture=True).returncode == 0
 
-          (
-            cd dist
-            zip -r -q "AVGTemplate-${TAG}.zip" "${PKG_DIR}"
-            sha256sum "AVGTemplate-${TAG}.zip" > "AVGTemplate-${TAG}.sha256"
-          )
-          ls -lh dist/
+          def should_skip(rel_posix):
+              if rel_posix in EXCLUDE_FILES:
+                  return True
+              if any(rel_posix == d or rel_posix.startswith(d + "/") for d in EXCLUDE_DIRS):
+                  return True
+              if any(part.endswith("-dists") for part in rel_posix.split("/")):
+                  return True
+              if rel_posix.endswith(EXCLUDE_SUFFIXES):
+                  return True
+              return False
 
-      - name: Create GitHub Release
-        if: steps.meta.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: "AVGTemplate ${{ steps.meta.outputs.tag }}"
-          generate_release_notes: true
-          files: |
-            dist/AVGTemplate-${{ steps.meta.outputs.tag }}.zip
-            dist/AVGTemplate-${{ steps.meta.outputs.tag }}.sha256
+          def package_commit(tag, sha, out_dir):
+              pkg_name = f"AVGTemplate-{tag}"
+              zip_path = out_dir / f"{pkg_name}.zip"
+              sha_path = out_dir / f"{pkg_name}.sha256"
+              with tempfile.TemporaryDirectory() as tmp:
+                  tmp_path = Path(tmp)
+                  src_dir = tmp_path / pkg_name
+                  src_dir.mkdir(parents=True, exist_ok=True)
+                  tar_path = tmp_path / "tree.tar"
+                  run(["git", "archive", "--format=tar", f"--output={tar_path}", sha])
+                  run(["tar", "-xf", str(tar_path), "-C", str(src_dir)])
+
+                  with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                      for root, dirs, files in os.walk(src_dir):
+                          rel_root = Path(root).relative_to(src_dir).as_posix()
+                          if rel_root == ".":
+                              rel_root = ""
+                          dirs[:] = sorted(
+                              d for d in dirs
+                              if not should_skip(f"{rel_root}/{d}" if rel_root else d)
+                          )
+                          for fn in sorted(files):
+                              rel = f"{rel_root}/{fn}" if rel_root else fn
+                              if should_skip(rel):
+                                  continue
+                              zf.write(Path(root) / fn, f"{pkg_name}/{rel}")
+
+              import hashlib
+              h = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+              sha_path.write_text(f"{h}  {zip_path.name}\n", encoding="utf-8")
+              return zip_path, sha_path
+
+          backfill = os.environ.get("BACKFILL", "").lower() == "true"
+          github_ref = os.environ.get("GITHUB_REF_VALUE", "")
+          input_tag = os.environ.get("INPUT_TAG", "").strip()
+
+          targets = []  # list of (tag, sha, is_latest)
+          if backfill:
+              commits = run(["git", "log", "--reverse", "--format=%H"], capture=True).stdout.splitlines()
+              seen_versions = {}
+              ordered = []
+              for sha in commits:
+                  ver = get_manifest_ver(sha)
+                  if ver and ver not in seen_versions:
+                      seen_versions[ver] = sha
+                      ordered.append((f"v{ver}", sha))
+              for i, (tag, sha) in enumerate(ordered):
+                  targets.append((tag, sha, i == len(ordered) - 1))
+          else:
+              sha = os.environ.get("GITHUB_SHA_VALUE") or "HEAD"
+              ver = get_manifest_ver(sha)
+              if github_ref.startswith("refs/tags/v"):
+                  tag = github_ref[len("refs/tags/"):]
+              elif input_tag:
+                  tag = input_tag
+              else:
+                  tag = f"v{ver}"
+              targets.append((tag, sha, True))
+
+          out_dir = Path("dist")
+          out_dir.mkdir(exist_ok=True)
+          prev_tag = None
+
+          for tag, sha, is_latest in targets:
+              if release_exists(tag):
+                  print(f"Release {tag} already exists; skipping.")
+                  prev_tag = tag
+                  continue
+              print(f"Packaging {tag} at {sha[:7]} (latest={is_latest})...")
+              zip_path, sha_path = package_commit(tag, sha, out_dir)
+              cmd = [
+                  "gh", "release", "create", tag,
+                  str(zip_path), str(sha_path),
+                  "--target", sha,
+                  "--title", f"AVGTemplate {tag}",
+                  "--generate-release-notes",
+                  "--latest=" + ("true" if is_latest else "false"),
+              ]
+              if prev_tag:
+                  cmd.extend(["--notes-start-tag", prev_tag])
+              run(cmd)
+              prev_tag = tag
+          PY
