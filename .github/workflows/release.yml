@@ -127,14 +127,15 @@ jobs:
           if backfill:
               commits = run(["git", "log", "--reverse", "--format=%H"], capture=True).stdout.splitlines()
               seen_versions = {}
-              ordered = []
+              order = []
               for sha in commits:
                   ver = get_manifest_ver(sha)
-                  if ver and ver not in seen_versions:
+                  if ver:
+                      if ver not in seen_versions:
+                          order.append(ver)
                       seen_versions[ver] = sha
-                      ordered.append((f"v{ver}", sha))
-              for i, (tag, sha) in enumerate(ordered):
-                  targets.append((tag, sha, i == len(ordered) - 1))
+              for i, ver in enumerate(order):
+                  targets.append((f"v{ver}", seen_versions[ver], i == len(order) - 1))
           else:
               sha = os.environ.get("GITHUB_SHA_VALUE") or "HEAD"
               ver = get_manifest_ver(sha)
@@ -162,7 +163,7 @@ jobs:
                   str(zip_path), str(sha_path),
                   "--target", sha,
                   "--title", f"AVGTemplate {tag}",
-                  "--generate-release-notes",
+                  "--generate-notes",
                   "--latest=" + ("true" if is_latest else "false"),
               ]
               if prev_tag:
